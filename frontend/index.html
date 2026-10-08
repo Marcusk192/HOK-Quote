@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpine Edge Carpentry — Quoting Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2027;
+    --ink-soft:#2A3038;
+    --paper:#F7F5F0;
+    --paper-dim:#EDEAE2;
+    --walnut:#8B5A3C;
+    --walnut-light:#B98A63;
+    --blueprint:#4A7C94;
+    --blueprint-light:#6FA8C0;
+    --line:#D8D3C7;
+    --text:#3A3F47;
+    --text-dim:#767b82;
+    --ok:#5B8266;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+  }
+  h1,h2,h3,.mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  header{
+    background:
+      linear-gradient(180deg, var(--ink) 0%, var(--ink-soft) 100%);
+    color:var(--paper);
+    padding:48px 32px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--blueprint) 1px, transparent 1px),
+      linear-gradient(90deg, var(--blueprint) 1px, transparent 1px);
+    background-size:32px 32px;
+    opacity:0.06;
+  }
+  header::after{
+    content:"";
+    position:absolute; right:-60px; top:-60px; width:220px; height:220px;
+    border:1px solid var(--walnut-light);
+    opacity:0.35; transform:rotate(45deg);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--blueprint-light); margin:0 0 10px; position:relative;
+  }
+  h1.brand{
+    font-size:clamp(32px,5vw,48px); font-weight:700; margin:0;
+    letter-spacing:-0.01em; position:relative;
+  }
+  h1.brand span{color:var(--walnut-light);}
+  .tagline{
+    color:#B9BEC6; max-width:520px; margin:14px 0 0; font-size:15px;
+    line-height:1.55; position:relative;
+  }
+
+  main{max-width:980px; margin:0 auto; padding:40px 24px 80px;}
+
+  .door-picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+  .door-picker select{
+    font-family:'JetBrains Mono',monospace; font-size:13px; padding:9px 12px;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    border-radius:2px; min-width:160px;
+  }
+  .door-picker select:disabled{color:var(--text-dim); background:var(--paper-dim);}
+
+  .dropzone{
+    position:relative;
+    border:1px dashed var(--line);
+    background:#fff;
+    border-radius:2px;
+    padding:56px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .dropzone.drag{border-color:var(--blueprint); background:#F1F7F9;}
+  .dropzone.error{border-color:#B4544A;}
+  .corner{position:absolute; width:18px; height:18px; border:2px solid var(--walnut); opacity:0.55; transition:opacity .2s ease, transform .2s ease;}
+  .dropzone.drag .corner{opacity:1; border-color:var(--blueprint);}
+  .corner.tl{top:10px; left:10px; border-right:none; border-bottom:none;}
+  .corner.tr{top:10px; right:10px; border-left:none; border-bottom:none;}
+  .corner.bl{bottom:10px; left:10px; border-right:none; border-top:none;}
+  .corner.br{bottom:10px; right:10px; border-left:none; border-top:none;}
+
+  .dz-title{font-size:18px; font-weight:600; color:var(--ink); margin:0 0 6px; font-family:'Space Grotesk',sans-serif;}
+  .dz-sub{font-size:13px; color:var(--text-dim); margin:0;}
+  .dz-sub code{background:var(--paper-dim); padding:1px 6px; border-radius:3px; font-family:'JetBrains Mono',monospace;}
+  input[type=file]{display:none;}
+
+  .status{margin-top:16px; font-size:13px; font-family:'JetBrains Mono',monospace;}
+  .status.err{color:#B4544A;}
+  .status.ok{color:var(--ok);}
+
+  section.results{margin-top:48px; display:none;}
+  section.results.show{display:block; animation:fade .4s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .section-head h2{font-size:15px; text-transform:uppercase; letter-spacing:0.08em; margin:0; color:var(--ink);}
+  .count-pill{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);}
+
+  .trim-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:44px;}
+  .trim-card{
+    position:relative; background:#fff; border:1px solid var(--line); padding:18px 16px 16px;
+  }
+  .trim-card .tick{position:absolute; top:0; left:16px; width:1px; height:8px; background:var(--walnut);}
+  .trim-card .cat{font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim); margin:0 0 8px;}
+  .trim-card .len{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--ink); margin:0;}
+  .trim-card .len small{font-size:13px; font-weight:500; color:var(--text-dim);}
+  .trim-card .pieces{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--blueprint); margin-top:6px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px; background:#fff;}
+  th{
+    text-align:left; font-family:'JetBrains Mono',monospace; font-weight:500;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--text-dim); padding:10px 12px; border-bottom:1px solid var(--line);
+  }
+  td{padding:10px 12px; border-bottom:1px solid var(--paper-dim); vertical-align:top;}
+  td.mono, .code-cell{font-family:'JetBrains Mono',monospace; color:var(--walnut); font-weight:500;}
+  td.num{font-family:'JetBrains Mono',monospace; text-align:right; white-space:nowrap;}
+  tr:hover td{background:#FBFAF7;}
+
+  .toolbar{display:flex; gap:10px; margin-top:16px;}
+  button.dl{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.04em;
+    background:var(--ink); color:var(--paper); border:none; padding:10px 16px;
+    cursor:pointer; text-transform:uppercase;
+  }
+  button.dl:hover{background:var(--ink-soft);}
+  button.dl.secondary{background:transparent; color:var(--ink); border:1px solid var(--line);}
+
+  .caveat{
+    margin-top:56px; padding:16px 18px; background:var(--paper-dim); border-left:2px solid var(--walnut);
+    font-size:13px; line-height:1.6; color:var(--text);
+  }
+  .caveat strong{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Alpine Edge Carpentry</p>
+  <h1 class="brand display">Quoting <span>Engine</span></h1>
+  <p class="tagline">Upload a Winner Flex 3D kitchen model and get an instant breakdown of every cabinet, and the linear metres of kickboard, cornice, light pelmet and filler panel.</p>
+</header>
+
+<main>
+  <div class="section-head">
+    <h2 class="display">Door style &amp; colour</h2>
+  </div>
+  <div class="door-picker" id="doorPicker">
+    <select id="supplierSelect"><option value="">Supplier…</option></select>
+    <select id="doorTypeSelect" disabled><option value="">Door style…</option></select>
+    <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
+    <select id="colourSelect" disabled><option value="">Colour…</option></select>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <p class="dz-title">Drop your IFC export here</p>
+    <p class="dz-sub">or click to browse — expects a <code>.ifc</code> file exported from Winner Flex</p>
+    <input type="file" id="fileInput" accept=".ifc">
+  </div>
+  <div class="status" id="status"></div>
+
+  <section class="results" id="results">
+    <div class="section-head">
+      <h2 class="display">Cabinets</h2>
+      <span class="count-pill" id="cabCount"></span>
+    </div>
+    <div id="cabinetGroups"></div>
+
+    <div class="section-head" style="margin-top:44px;">
+      <h2 class="display">Doors &amp; trim</h2>
+      <span class="count-pill" id="doorSelectionSummary"></span>
+    </div>
+    <div id="doorsTable"></div>
+    <div class="trim-grid" id="trimGrid"></div>
+    <table id="panelTable" style="margin-top:8px;">
+      <thead><tr><th>Code</th><th>Description</th><th>Height</th><th>Face width</th><th>Order size (OS Doors)</th></tr></thead>
+      <tbody id="panelTbody"></tbody>
+    </table>
+
+    <div class="section-head" style="margin-top:44px;">
+      <h2 class="display">Appliances</h2>
+      <span class="count-pill" id="applCount"></span>
+    </div>
+    <table>
+      <thead><tr><th>Code</th><th>Description</th><th>W mm</th><th>D mm</th><th>H mm</th></tr></thead>
+      <tbody id="applTbody"></tbody>
+    </table>
+
+    <div class="toolbar">
+      <button class="dl" id="downloadCsv">Download CSV</button>
+      <button class="dl secondary" id="downloadJson">Download JSON</button>
+    </div>
+
+    <div class="caveat">
+      <strong>Note on doors:</strong> Winner Flex exports each cabinet as a single merged unit, so individual doors aren't broken out separately — the "Doors" line is a placeholder until a cabinet-code lookup table is built to infer door count/size from the codes above.
+    </div>
+  </section>
+</main>
+
+<script>
+  // Point this at your deployed backend if serving the frontend separately.
+  // When the backend serves this file itself (see README), a relative path works.
+  const API_URL = window.ALPINE_API_URL || '/api/parse';
+  const API_BASE = API_URL.replace(/\/api\/parse$/, '');
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const statusEl = document.getElementById('status');
+  const results = document.getElementById('results');
+  const trimGrid = document.getElementById('trimGrid');
+  const cabinetGroups = document.getElementById('cabinetGroups');
+  const cabCount = document.getElementById('cabCount');
+  const panelTbody = document.getElementById('panelTbody');
+  const doorsTable = document.getElementById('doorsTable');
+  const applTbody = document.getElementById('applTbody');
+  const applCount = document.getElementById('applCount');
+  const doorSelectionSummary = document.getElementById('doorSelectionSummary');
+
+  const supplierSelect = document.getElementById('supplierSelect');
+  const doorTypeSelect = document.getElementById('doorTypeSelect');
+  const rangeSelect = document.getElementById('rangeSelect');
+  const colourSelect = document.getElementById('colourSelect');
+
+  let lastResult = null;
+  let lastFilename = 'kitchen';
+
+  // --- Door style / colour picker ---
+  async function fillSelect(select, options, placeholder) {
+    select.innerHTML = `<option value="">${placeholder}</option>` +
+      options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+    select.disabled = options.length === 0;
+  }
+
+  fetch(`${API_BASE}/api/catalogue/suppliers`).then(r => r.json()).then(suppliers => {
+    fillSelect(supplierSelect, suppliers, 'Supplier…');
+  }).catch(() => {});
+
+  supplierSelect.addEventListener('change', async () => {
+    doorTypeSelect.innerHTML = '<option value="">Door style…</option>';
+    doorTypeSelect.disabled = true;
+    rangeSelect.style.display = 'none';
+    colourSelect.innerHTML = '<option value="">Colour…</option>';
+    colourSelect.disabled = true;
+    if (!supplierSelect.value) return;
+    const types = await fetch(`${API_BASE}/api/catalogue/door-types?supplier=${encodeURIComponent(supplierSelect.value)}`).then(r => r.json());
+    fillSelect(doorTypeSelect, types, 'Door style…');
+  });
+
+  doorTypeSelect.addEventListener('change', async () => {
+    colourSelect.innerHTML = '<option value="">Colour…</option>';
+    colourSelect.disabled = true;
+    rangeSelect.innerHTML = '<option value="">Range…</option>';
+    rangeSelect.style.display = 'none';
+    if (!doorTypeSelect.value) return;
+    const ranges = await fetch(`${API_BASE}/api/catalogue/ranges?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}`).then(r => r.json());
+    // 5G Vinyl-style door types share one colour list across ranges, but a
+    // range still needs picking (it's the door face/profile, e.g. "Modern").
+    fillSelect(rangeSelect, ranges, 'Door style / range…');
+    rangeSelect.style.display = '';
+    // Try loading colours without a range first (works for shared-colour door types)
+    const colours = await fetch(`${API_BASE}/api/catalogue/colours?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}`).then(r => r.json());
+    if (colours.length) fillSelect(colourSelect, colours, 'Colour…');
+  });
+
+  rangeSelect.addEventListener('change', async () => {
+    if (!rangeSelect.value) return;
+    const colours = await fetch(`${API_BASE}/api/catalogue/colours?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}&door_range=${encodeURIComponent(rangeSelect.value)}`).then(r => r.json());
+    fillSelect(colourSelect, colours, 'Colour…');
+  });
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  });
+
+  async function handleFile(file){
+    dropzone.classList.remove('error');
+    if (!file.name.toLowerCase().endsWith('.ifc')) {
+      dropzone.classList.add('error');
+      statusEl.textContent = 'Please upload a .ifc file exported from Winner Flex.';
+      statusEl.className = 'status err';
+      return;
+    }
+    lastFilename = file.name.replace(/\.ifc$/i,'');
+    statusEl.textContent = `Parsing ${file.name}…`;
+    statusEl.className = 'status';
+
+    const form = new FormData();
+    form.append('file', file);
+
+    const params = new URLSearchParams();
+    if (supplierSelect.value) params.set('supplier', supplierSelect.value);
+    if (doorTypeSelect.value) params.set('door_type', doorTypeSelect.value);
+    if (rangeSelect.value) params.set('door_range', rangeSelect.value);
+    const url = params.toString() ? `${API_URL}?${params}` : API_URL;
+
+    try {
+      const res = await fetch(url, { method:'POST', body: form });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({detail:res.statusText}));
+        throw new Error(err.detail || 'Parse failed');
+      }
+      const data = await res.json();
+      lastResult = data;
+      render(data);
+      statusEl.textContent = `Parsed ${data.summary.cabinet_count} cabinets, ${data.summary.panel_count} panels, ${data.summary.appliance_count} appliances.`;
+      statusEl.className = 'status ok';
+    } catch (e) {
+      dropzone.classList.add('error');
+      statusEl.textContent = `Error: ${e.message}`;
+      statusEl.className = 'status err';
+    }
+  }
+
+  function render(data){
+    // --- Cabinets, grouped: Base / Wall / Tall ---
+    cabinetGroups.innerHTML = '';
+    const cabOrder = [['base','Base'],['wall','Wall'],['tall','Tall']];
+    let totalCabs = 0;
+    cabOrder.forEach(([key,label]) => {
+      const items = data.cabinets[key] || [];
+      totalCabs += items.length;
+      if (!items.length) return;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<h3 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:18px 0 6px;color:var(--walnut);">${label} <span style="color:var(--text-dim);font-weight:400;">(${items.length})</span></h3>`;
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Code</th><th>Description</th><th>W mm</th><th>D mm</th><th>H mm</th></tr></thead><tbody></tbody>`;
+      const tbody = table.querySelector('tbody');
+      items.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.depth_mm}</td><td class="num">${c.height_mm}</td>`;
+        tbody.appendChild(tr);
+      });
+      wrap.appendChild(table);
+      cabinetGroups.appendChild(wrap);
+    });
+    cabCount.textContent = `${totalCabs} items`;
+
+    // --- Doors & trim: cutting-stock cards + panels table ---
+    trimGrid.innerHTML = '';
+    const dt = data.doors_and_trim;
+
+    doorsTable.innerHTML = '';
+    const hasStockCheck = dt.doors.some(d => d.fronts.some(f => 'standard_size' in f));
+    doorSelectionSummary.textContent = supplierSelect.value && doorTypeSelect.value
+      ? `${supplierSelect.value} — ${doorTypeSelect.value}${rangeSelect.value ? ' — ' + rangeSelect.value : ''}`
+      : '';
+    if (dt.doors.length) {
+      const table = document.createElement('table');
+      const stockCol = hasStockCheck ? '<th>Stock</th>' : '';
+      table.innerHTML = `<thead><tr><th>Cabinet</th><th>Front type</th><th>W mm</th><th>H mm</th><th>Qty</th>${stockCol}</tr></thead><tbody></tbody>`;
+      const tbody = table.querySelector('tbody');
+      dt.doors.forEach(d => {
+        d.fronts.forEach((f, i) => {
+          const tr = document.createElement('tr');
+          let stockCell = '';
+          let wCell = `<td class="num">${f.width_mm}</td>`;
+          let hCell = `<td class="num">${f.height_mm}</td>`;
+          if (hasStockCheck) {
+            const isStd = f.standard_size;
+            if (isStd === false) {
+              // No catalogue match — let the size be confirmed by hand
+              // rather than just quoting the unresolved formula guess.
+              wCell = `<td><input type="number" class="mtm-input" data-field="width" value="${f.width_mm}" style="width:64px;"></td>`;
+              hCell = `<td><input type="number" class="mtm-input" data-field="height" value="${f.height_mm}" style="width:64px;"></td>`;
+              stockCell = `<td style="color:#B4544A;font-family:'JetBrains Mono',monospace;font-size:12px;">MTM — confirm size</td>`;
+            } else {
+              stockCell = `<td style="color:var(--ok);font-family:'JetBrains Mono',monospace;font-size:12px;">Standard</td>`;
+            }
+          }
+          tr.innerHTML = `<td class="code-cell">${i===0 ? escapeHtml(d.cabinet_code) : ''}</td><td>${f.type.replace('_',' ')}</td>${wCell}${hCell}<td class="num">${f.qty}</td>${stockCell}`;
+          tbody.appendChild(tr);
+        });
+      });
+      doorsTable.appendChild(table);
+    }
+    if (dt.doors_not_catalogued && dt.doors_not_catalogued.length) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:14px;';
+      wrap.innerHTML = `<p style="font-size:13px;color:var(--text-dim);margin:0 0 8px;">Not yet catalogued — specify the front size to include it:</p>`;
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Cabinet</th><th>Type</th><th>W mm</th><th>H mm</th><th>Qty</th></tr></thead><tbody></tbody>`;
+      const tbody = table.querySelector('tbody');
+      dt.doors_not_catalogued.forEach(code => {
+        const tr = document.createElement('tr');
+        tr.dataset.manualCode = code;
+        tr.innerHTML = `
+          <td class="code-cell">${escapeHtml(code)}</td>
+          <td><select class="manual-input" data-field="type" style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px;">
+                <option value="door">door</option><option value="drawer_front">drawer front</option></select></td>
+          <td><input type="number" class="manual-input" data-field="width" placeholder="mm" style="width:64px;"></td>
+          <td><input type="number" class="manual-input" data-field="height" placeholder="mm" style="width:64px;"></td>
+          <td><input type="number" class="manual-input" data-field="qty" value="1" style="width:48px;"></td>`;
+        tbody.appendChild(tr);
+      });
+      wrap.appendChild(table);
+      doorsTable.appendChild(wrap);
+    }
+    ['Kickboard','Cornice','Light pelmet'].forEach(cat => {
+      const t = dt.trim_cutting[cat];
+      if (!t) return;
+      const card = document.createElement('div');
+      card.className = 'trim-card';
+      card.innerHTML = `
+        <span class="tick"></span>
+        <p class="cat">${cat}</p>
+        <p class="len">${t.lengths_required}<small> &times; 3m lengths</small></p>
+        <p class="pieces">${(t.total_length_mm/1000).toFixed(2)}m across ${t.pieces} piece${t.pieces===1?'':'s'}${cat==='Kickboard' && data.summary.corner_units ? ' (incl. corner filler)' : ''}</p>`;
+      trimGrid.appendChild(card);
+    });
+    if (dt.worktop_area_m2 != null) {
+      const wc = dt.worktop_cutting;
+      const card = document.createElement('div');
+      card.className = 'trim-card';
+      card.innerHTML = `
+        <span class="tick"></span>
+        <p class="cat">Worktop</p>
+        <p class="len">${wc ? wc.lengths_required : '—'}<small> &times; 4.05m lengths</small></p>
+        <p class="pieces">${dt.worktop_area_m2.toFixed(2)}m&sup2; true area${wc ? ' &middot; boards: ' + wc.board_lengths_mm.map(l=>(l/1000).toFixed(2)+'m').join(', ') : ''}</p>`;
+      trimGrid.appendChild(card);
+    }
+    panelTbody.innerHTML = '';
+    dt.panels.forEach(c => {
+      const po = c.panel_order;
+      const tr = document.createElement('tr');
+      let orderCell = '<span style="color:var(--text-dim);">not found</span>';
+      if (po) {
+        const opts = Object.entries(po.standard_options).filter(([,v]) => v);
+        if (opts.length) {
+          const [type, size] = opts[0];
+          orderCell = `${size[0]} &times; ${size[1]}mm <span style="color:var(--text-dim);font-size:11px;">(${escapeHtml(type)})</span>`;
+        } else {
+          orderCell = '<span style="color:#B4544A;">MTM required</span>';
+        }
+      }
+      tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${po ? po.actual_height_mm : c.height_mm}</td><td class="num">${po ? po.actual_face_width_mm + (po.is_tall_panel ? '*' : '') : ''}</td><td>${orderCell}</td>`;
+      panelTbody.appendChild(tr);
+    });
+    if (dt.panels.some(p => p.panel_order && p.panel_order.is_tall_panel)) {
+      const note = document.createElement('p');
+      note.style.cssText = 'font-size:12px;color:var(--text-dim);margin:6px 0 0;';
+      note.textContent = `* tall panel — face width assumed at 650mm to reach the worktop; confirm 650/700/750mm for this job.`;
+      panelTbody.parentElement.after(note);
+    }
+
+    // --- Appliances ---
+    applTbody.innerHTML = '';
+    data.appliances.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.depth_mm}</td><td class="num">${c.height_mm}</td>`;
+      applTbody.appendChild(tr);
+    });
+    applCount.textContent = `${data.appliances.length} items`;
+
+    results.classList.add('show');
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+  }
+
+  document.getElementById('downloadJson').addEventListener('click', () => {
+    if (!lastResult) return;
+    downloadBlob(JSON.stringify(lastResult, null, 2), `${lastFilename}-breakdown.json`, 'application/json');
+  });
+
+  document.getElementById('downloadCsv').addEventListener('click', () => {
+    if (!lastResult) return;
+    let rows = [['Group','Code','Description','Width mm','Depth mm','Height mm']];
+    ['base','wall','tall'].forEach(g => {
+      lastResult.cabinets[g].forEach(c => rows.push([g[0].toUpperCase()+g.slice(1), c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
+    });
+    lastResult.doors_and_trim.panels.forEach(c => rows.push(['Panel', c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
+    lastResult.appliances.forEach(c => rows.push(['Appliance', c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
+
+    // Doors/fronts — read straight from the table so any typed-in MTM
+    // sizes or manually-specified uncatalogued fronts are included,
+    // not just the original computed values.
+    rows.push([]);
+    rows.push(['Door/Front', 'Cabinet', 'Type', 'Width mm', 'Height mm', 'Qty', 'Source']);
+    let lastCabinet = '';
+    doorsTable.querySelectorAll('table tr').forEach(tr => {
+      if (tr.querySelector('th')) return; // header row
+      const isManual = 'manualCode' in tr.dataset;
+      let cabinet = isManual ? tr.dataset.manualCode : (tr.cells[0]?.textContent || '');
+      if (!isManual) {
+        cabinet = cabinet || lastCabinet;
+        lastCabinet = cabinet;
+      }
+      const type = isManual ? tr.querySelector('[data-field="type"]')?.value : tr.cells[1]?.textContent;
+      const wInput = tr.querySelector('[data-field="width"]');
+      const hInput = tr.querySelector('[data-field="height"]');
+      const width = wInput ? wInput.value : tr.cells[2]?.textContent;
+      const height = hInput ? hInput.value : tr.cells[3]?.textContent;
+      const qtyInput = tr.querySelector('[data-field="qty"]');
+      const qty = qtyInput ? qtyInput.value : tr.cells[4]?.textContent;
+      if (!width && !height) return; // skip empty manual rows nobody filled in
+      rows.push([cabinet, cabinet, type, width, height, qty, isManual ? 'manual' : 'engine']);
+    });
+
+    rows.push([]);
+    rows.push(['Material', 'Lengths required', 'Stock size', 'Cut plan']);
+    Object.entries(lastResult.doors_and_trim.trim_cutting).forEach(([cat,t]) => {
+      rows.push([cat, t.lengths_required, `${t.stock_length_mm}mm`, JSON.stringify(t.cut_plan_mm)]);
+    });
+    const wc = lastResult.doors_and_trim.worktop_cutting;
+    if (wc) rows.push(['Worktop', wc.lengths_required, `${wc.stock_length_mm}x${wc.stock_depth_mm}mm`, JSON.stringify(wc.cut_plan_mm)]);
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    downloadBlob(csv, `${lastFilename}-breakdown.csv`, 'text/csv');
+  });
+
+  function downloadBlob(content, filename, type){
+    const blob = new Blob([content], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+</script>
+
+</body>
+</html>
