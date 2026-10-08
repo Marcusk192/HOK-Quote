@@ -652,7 +652,38 @@ def correct_width_depth(cab: dict) -> dict:
     return cab
 
 
-BULK_GEOMETRY_LIBRARY = "manifold"  # lightweight kernel for the bulk pass — see note below
+# Preference order for the bulk-pass geometry kernel: lightest memory
+# footprint first. Not every ifcopenshell build has every kernel
+# compiled in — confirmed on the actual hosting platform (Render):
+# "manifold" worked and was fastest/lightest in local testing, but the
+# deployed build raised "No geometry kernel registered for manifold".
+# So this is resolved at runtime per server process, trying each in
+# turn and caching whichever actually works, rather than assuming any
+# one of them is present.
+BULK_GEOMETRY_LIBRARY_CANDIDATES = ["manifold", "cgal-simple", "cgal", "opencascade"]
+_resolved_bulk_library = None
+
+
+def resolve_bulk_geometry_library(f):
+    global _resolved_bulk_library
+    if _resolved_bulk_library:
+        return _resolved_bulk_library
+    for lib in BULK_GEOMETRY_LIBRARY_CANDIDATES:
+        try:
+            it = ifcopenshell.geom.iterator(
+                SETTINGS, f, include=["IfcFurnishingElement", "IfcBuildingElementProxy"],
+                geometry_library=lib,
+            )
+            it.initialize()  # raises here if the kernel isn't registered
+            _resolved_bulk_library = lib
+            return lib
+        except Exception:
+            continue
+    # last resort: let the default (no geometry_library override) apply —
+    # if nothing above worked, something is unusually broken and the
+    # normal error handling in parse_ifc_upload will surface it.
+    _resolved_bulk_library = None
+    return None
 
 
 def parse_ifc(path: str) -> dict:
@@ -701,15 +732,16 @@ def parse_ifc(path: str) -> dict:
     # real job (Ryan.ifc, 15.7MB): the original per-element approach
     # on the default kernel peaked at ~360MB just for parsing, which —
     # added to FastAPI's own overhead — was tipping real jobs over a
-    # 512MB hosting limit; switching the bulk pass to "manifold"
-    # brought that down to ~150MB for the same file, since cabinets
+    # 512MB hosting limit; switching the bulk pass to a lighter kernel
+    # brought that down to ~150-200MB for the same file, since cabinets
     # and trim strips are simple enough shapes not to need the full
-    # CAD-precision kernel.
-    iterator = ifcopenshell.geom.iterator(
-        SETTINGS, f,
-        include=["IfcFurnishingElement", "IfcBuildingElementProxy"],
-        geometry_library=BULK_GEOMETRY_LIBRARY,
-    )
+    # CAD-precision kernel. Which kernel is actually available is
+    # resolved once per server process (see resolve_bulk_geometry_library).
+    bulk_library = resolve_bulk_geometry_library(f)
+    iterator_kwargs = {"include": ["IfcFurnishingElement", "IfcBuildingElementProxy"]}
+    if bulk_library:
+        iterator_kwargs["geometry_library"] = bulk_library
+    iterator = ifcopenshell.geom.iterator(SETTINGS, f, **iterator_kwargs)
     if iterator.initialize():
         while True:
             shape = iterator.get()
