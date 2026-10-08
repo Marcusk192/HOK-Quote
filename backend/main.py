@@ -8,6 +8,7 @@ cornice, light pelmet, filler panels).
 import tempfile
 import os
 import re
+import gc
 from collections import defaultdict
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -31,19 +32,32 @@ app.add_middleware(
 
 SETTINGS = ifcopenshell.geom.settings()
 SETTINGS.set(SETTINGS.USE_WORLD_COORDS, True)
+SETTINGS.set(SETTINGS.WELD_VERTICES, True)  # merges duplicate vertices — notably cuts mesh memory
 
 
-def bbox(element):
-    """World-space bounding box for an IFC element, in metres."""
-    shape = ifcopenshell.geom.create_shape(SETTINGS, element)
-    v = shape.geometry.verts
-    xs, ys, zs = v[0::3], v[1::3], v[2::3]
+def bbox_from_verts(verts):
+    """World-space bounding box from a flat (x,y,z,x,y,z,...) vertex list, in metres."""
+    xs, ys, zs = verts[0::3], verts[1::3], verts[2::3]
     return {
         "w": max(xs) - min(xs),
         "d": max(ys) - min(ys),
         "h": max(zs) - min(zs),
         "z0": min(zs),
     }
+
+
+def bbox(element):
+    """
+    World-space bounding box for a SINGLE element, in metres. Used only
+    for the handful of elements (the worktop) that need individual
+    geometry access outside the bulk cabinet/trim pass — that pass uses
+    the memory-efficient iterator in parse_ifc instead of this, since
+    calling create_shape element-by-element for a whole real job (often
+    hundreds of parts) is what was pushing real files over a 512MB
+    hosting limit.
+    """
+    shape = ifcopenshell.geom.create_shape(SETTINGS, element)
+    return bbox_from_verts(shape.geometry.verts)
 
 
 def classify_trim(z0: float) -> str:
@@ -638,59 +652,96 @@ def correct_width_depth(cab: dict) -> dict:
     return cab
 
 
+BULK_GEOMETRY_LIBRARY = "manifold"  # lightweight kernel for the bulk pass — see note below
+
+
 def parse_ifc(path: str) -> dict:
     f = ifcopenshell.open(path)
 
     cabinets = []
     corner_filler_count = 0
     worktop_pieces = []  # one entry per separate worktop object in the model
-    for el in f.by_type("IfcFurnishingElement"):
+    trim_pieces = []
+
+    # Worktops are singled out before the bulk pass: the default
+    # OpenCASCADE kernel handles their L-shaped, cut-out geometry
+    # correctly, but the lightweight "manifold" kernel used for the
+    # bulk pass below silently fails on exactly that kind of complex
+    # shape (confirmed: it skipped the one worktop on a real job
+    # without raising an error) — so worktops never go through the
+    # fast path at all, and get the careful per-element treatment via
+    # bbox()/top_face_area()/worktop_board_lengths() instead. There
+    # are only ever a few worktops per job, so this costs little.
+    worktop_elements = [
+        el for el in f.by_type("IfcFurnishingElement")
+        if "worktop" in (el.Description or "").lower()
+    ]
+    worktop_ids = {el.id() for el in worktop_elements}
+    for el in worktop_elements:
         try:
             b = bbox(el)
+            cab = correct_width_depth({
+                "code": el.Name or "",
+                "description": el.Description or "",
+                "width_mm": round(b["w"] * 1000),
+                "depth_mm": round(b["d"] * 1000),
+                "height_mm": round(b["h"] * 1000),
+            })
+            cabinets.append(cab)
+            worktop_pieces.append({
+                "area_m2": round(top_face_area(el), 3),
+                "board_lengths_mm": worktop_board_lengths(el),
+            })
         except Exception:
-            continue
-        cab = correct_width_depth({
-            "code": el.Name or "",
-            "description": el.Description or "",
-            "width_mm": round(b["w"] * 1000),
-            "depth_mm": round(b["d"] * 1000),
-            "height_mm": round(b["h"] * 1000),
-        })
-        cabinets.append(cab)
-        if is_corner_unit(cab):
-            corner_filler_count += 1
-        if is_worktop(cab):
-            # A job can have more than one separate worktop object (e.g.
-            # a disconnected run, or an island apart from the main run)
-            # — confirmed on a real job with 3. Each one is tracked
-            # separately and combined below, rather than the last one
-            # processed silently overwriting the others.
+            pass
+
+    # Bulk pass over everything else, using the C++-side iterator with
+    # a lightweight geometry kernel rather than one create_shape()
+    # Python call per element on the default kernel. Confirmed on a
+    # real job (Ryan.ifc, 15.7MB): the original per-element approach
+    # on the default kernel peaked at ~360MB just for parsing, which —
+    # added to FastAPI's own overhead — was tipping real jobs over a
+    # 512MB hosting limit; switching the bulk pass to "manifold"
+    # brought that down to ~150MB for the same file, since cabinets
+    # and trim strips are simple enough shapes not to need the full
+    # CAD-precision kernel.
+    iterator = ifcopenshell.geom.iterator(
+        SETTINGS, f,
+        include=["IfcFurnishingElement", "IfcBuildingElementProxy"],
+        geometry_library=BULK_GEOMETRY_LIBRARY,
+    )
+    if iterator.initialize():
+        while True:
+            shape = iterator.get()
             try:
-                worktop_pieces.append({
-                    "area_m2": round(top_face_area(el), 3),
-                    "board_lengths_mm": worktop_board_lengths(el),
-                })
+                if shape.id not in worktop_ids:
+                    b = bbox_from_verts(shape.geometry.verts)
+                    el = f.by_id(shape.id)
+                    if el.is_a("IfcFurnishingElement"):
+                        cab = correct_width_depth({
+                            "code": el.Name or "",
+                            "description": el.Description or "",
+                            "width_mm": round(b["w"] * 1000),
+                            "depth_mm": round(b["d"] * 1000),
+                            "height_mm": round(b["h"] * 1000),
+                        })
+                        cabinets.append(cab)
+                        if is_corner_unit(cab):
+                            corner_filler_count += 1
+                    else:  # IfcBuildingElementProxy
+                        dims = sorted([b["w"], b["d"], b["h"]])
+                        trim_pieces.append({
+                            "category": classify_trim(b["z0"]),
+                            "length_mm": round(dims[2] * 1000),
+                            "thickness_mm": round(dims[0] * 1000),
+                        })
             except Exception:
                 pass
+            if not iterator.next():
+                break
 
     worktop_area_m2 = round(sum(p["area_m2"] for p in worktop_pieces), 3) if worktop_pieces else None
     worktop_board_lens = [l for p in worktop_pieces for l in p["board_lengths_mm"]]
-
-    trim_pieces = []
-    for el in f.by_type("IfcBuildingElementProxy"):
-        try:
-            b = bbox(el)
-        except Exception:
-            continue
-        dims = sorted([b["w"], b["d"], b["h"]])
-        length_mm = round(dims[2] * 1000)
-        thickness_mm = round(dims[0] * 1000)
-        category = classify_trim(b["z0"])
-        trim_pieces.append({
-            "category": category,
-            "length_mm": length_mm,
-            "thickness_mm": thickness_mm,
-        })
 
     # Corner filler is bought and cut as part of the kickboard run, not
     # its own material — fold its allowance in as extra kickboard pieces
@@ -806,6 +857,7 @@ async def parse_ifc_upload(
         raise HTTPException(422, f"Could not parse this IFC file: {e}")
     finally:
         os.unlink(tmp_path)
+        gc.collect()  # force the C-level IFC model/geometry memory to actually release between requests
 
     # If a door style is selected: check each computed front against
     # the real supplier catalogue and, where a real stocked size is
