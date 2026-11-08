@@ -86,6 +86,32 @@
   .stat .s{font-size:12px; color:var(--dim); margin-top:2px;}
   .warnbox{background:#fbf3e6; border-left:3px solid var(--warn); padding:12px 14px; font-size:13px; margin:14px 0; border-radius:0 4px 4px 0;}
 
+  /* ---------- item library (Houzz-style) ---------- */
+  .picked{display:flex; gap:16px; align-items:center; background:#fff; border:1px solid var(--line); border-radius:6px; padding:12px; cursor:pointer;}
+  .picked:hover{border-color:var(--copper);}
+  .picked img,.picked .noimg{width:96px; height:96px; object-fit:cover; border-radius:4px; background:var(--line-2); flex:none;}
+  .picked .nm{font-weight:600; color:var(--navy);} .picked .ds{font-size:12px; color:var(--dim); margin-top:4px; max-height:3.2em; overflow:hidden;}
+  .picked .chg{margin-left:auto; flex:none;}
+  .lib-overlay{position:fixed; inset:0; background:rgba(20,24,28,.55); z-index:50; display:flex; align-items:stretch; justify-content:center; padding:24px;}
+  .lib-overlay[hidden]{display:none;}
+  .lib-panel{background:var(--paper); width:100%; max-width:1100px; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;}
+  .lib-head{display:flex; gap:12px; align-items:center; padding:16px 20px; background:#fff; border-bottom:1px solid var(--line);}
+  .lib-head h2{margin:0; white-space:nowrap;} .lib-head input{flex:1;}
+  .lib-chips{display:flex; gap:8px; flex-wrap:wrap; padding:12px 20px; background:#fff; border-bottom:1px solid var(--line);}
+  .chip{border:1px solid var(--line); background:#fff; border-radius:16px; padding:6px 12px; cursor:pointer; font-size:12px; font-weight:600; color:var(--dim);}
+  .chip.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+  .lib-grid{flex:1; overflow-y:auto; padding:18px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; align-content:start;}
+  .tile{background:#fff; border:1px solid var(--line); border-radius:6px; overflow:hidden; display:flex; flex-direction:column; cursor:pointer; position:relative;}
+  .tile:hover{border-color:var(--copper); box-shadow:0 2px 10px rgba(0,0,0,.06);}
+  .tile.sel{border:2px solid var(--copper);}
+  .tile .ph{aspect-ratio:1; background:#fff; display:flex; align-items:center; justify-content:center; border-bottom:1px solid var(--line-2);}
+  .tile .ph img{width:100%; height:100%; object-fit:contain;}
+  .tile .bd{padding:10px; font-size:12.5px; flex:1; display:flex; flex-direction:column; gap:4px;}
+  .tile .nm{font-weight:600; color:var(--navy); line-height:1.3;}
+  .tile .pr{color:var(--dim); margin-top:auto;}
+  .tile .badge{position:absolute; top:8px; right:8px; background:var(--copper); color:#fff; font-size:11px; font-weight:700; border-radius:10px; padding:2px 8px;}
+  .thumb{width:44px; height:44px; object-fit:cover; border-radius:3px; background:var(--line-2); display:block;}
+
   /* ---------- step 3 ---------- */
   .two{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
   .catalogue{max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:6px; background:#fff;}
@@ -203,25 +229,30 @@
   <p class="lead">Pick the door and cabinet colour, then drop in the Winner Flex IFC export.</p>
 
   <div class="card">
-    <h3 style="margin-top:0;">Doors</h3>
-    <div class="pickers">
-      <select id="supplierSelect"><option value="">Supplier…</option></select>
-      <select id="doorTypeSelect" disabled><option value="">Door type…</option></select>
-      <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
-      <select id="colourSelect" disabled><option value="">Colour…</option></select>
-    </div>
+    <h3 style="margin-top:0;">Door style</h3>
+    <div class="picked" id="doorPicked"></div>
     <div class="grid" style="margin-top:14px;">
-      <div class="full"><label>Price door fronts from</label><select id="priceRangeSelect"><option value="">Choose a supplier first…</option></select>
-        <div class="hint">The price list range used for every door and drawer front. Picked for you when it can match the door. Check it's right.</div>
+      <div><label>Colour</label><select id="priceRangeSelect"><option value="">Pick a door style first…</option></select>
+        <div class="hint">Every door and drawer front is priced from this colour's price list.</div>
         <div class="hint" id="priceHint" style="color:var(--warn); font-weight:600;"></div></div>
       <div><label>Door name on quote</label><input type="text" id="doorName" placeholder="e.g. Buckingham - Indigo Ash"></div>
-      <div><label>Door photo (optional)</label><input type="file" id="doorPhoto" accept="image/*" style="display:block;"></div>
       <div class="full"><label>Door description on quote</label><textarea id="doorDesc" style="min-height:60px;"></textarea></div>
+      <div class="full"><label>Own door photo (optional, replaces the library photo)</label><input type="file" id="doorPhoto" accept="image/*" style="display:block;"></div>
     </div>
+    <details style="margin-top:12px;"><summary class="hint" style="cursor:pointer;">Supplier size check (optional)</summary>
+      <div class="pickers" style="margin-top:10px;">
+        <select id="supplierSelect"><option value="">Supplier…</option></select>
+        <select id="doorTypeSelect" disabled><option value="">Door type…</option></select>
+        <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
+        <select id="colourSelect" disabled><option value="">Colour…</option></select>
+      </div>
+      <div class="hint">Snaps each front to the supplier's standard sizes and marks made-to-measure ones. Pick before dropping in the model.</div>
+    </details>
 
     <h3>Cabinets</h3>
-    <div class="grid">
-      <div><label>Cabinet colour</label><input type="text" id="carcassName" list="decorList" value="Robson Oak"><datalist id="decorList"></datalist></div>
+    <div class="picked" id="carcassPicked"></div>
+    <div class="grid" style="margin-top:14px;">
+      <div><label>Cabinet colour name on quote</label><input type="text" id="carcassName" list="decorList" value="Robson Oak"><datalist id="decorList"></datalist></div>
       <div><label>Carcass price band</label><select id="carcassBand">
         <option value="1">Band 1 – plain colours</option><option value="2" selected>Band 2 – woodgrains</option>
         <option value="3">Band 3 – textured woodgrains</option><option value="4">Band 4 – grained / Casella</option></select>
@@ -256,10 +287,11 @@
 
   <div class="two">
     <div>
-      <h3 style="margin-top:0;">Catalogue</h3>
-      <input type="text" id="catSearch" placeholder="Search e.g. pot drawer, larder, bin…" style="margin-bottom:8px;">
-      <div class="catalogue" id="catalogue"></div>
-      <div class="hint">Starter list for now. The full storage, sink and tap catalogue gets added here later.</div>
+      <h3 style="margin-top:0;">From your item library</h3>
+      <div class="card" style="text-align:center; padding:28px 20px;">
+        <p style="margin:0 0 14px; color:var(--dim);">Drawers, pull-outs, bins, sinks, taps, handles and more, with photos.</p>
+        <button class="btn copper" id="accBrowse">Browse items</button>
+      </div>
     </div>
     <div>
       <h3 style="margin-top:0;">Custom item</h3>
@@ -276,10 +308,11 @@
   </div>
 
   <h3>Accessories on this quote</h3>
-  <table class="lines"><thead><tr><th>Item</th><th>Description</th><th class="num" style="width:70px;">Qty</th><th class="num" style="width:120px;">Each ex VAT</th><th class="num" style="width:100px;">Total</th><th style="width:30px;"></th></tr></thead>
+  <table class="lines"><thead><tr><th style="width:58px;"></th><th>Item</th><th>Description</th><th class="num" style="width:70px;">Qty</th><th class="num" style="width:120px;">Each ex VAT</th><th class="num" style="width:100px;">Total</th><th style="width:30px;"></th></tr></thead>
     <tbody id="accBody"></tbody></table>
 
   <h3>Worktop</h3>
+  <div class="picked" id="wtPicked" style="margin-bottom:10px;"></div>
   <div class="card grid">
     <div><label>Worktop name</label><input type="text" id="wtName" placeholder="e.g. Calacatta Marble"></div>
     <div><label>Price (ex VAT)</label><input type="number" id="wtPrice" step="0.01" min="0"></div>
@@ -289,9 +322,10 @@
   </div>
 
   <h3>Appliances</h3>
-  <table class="lines"><thead><tr><th>Appliance</th><th>Description</th><th class="num" style="width:120px;">Price ex VAT</th><th style="width:30px;"></th></tr></thead>
+  <table class="lines"><thead><tr><th style="width:58px;"></th><th>Appliance</th><th>Description</th><th class="num" style="width:120px;">Price ex VAT</th><th style="width:30px;"></th></tr></thead>
     <tbody id="apBody"></tbody></table>
-  <button class="btn small ghost" id="apAdd" style="margin-top:8px;">+ Add appliance</button>
+  <button class="btn small copper" id="apBrowse" style="margin-top:8px;">Browse appliances</button>
+  <button class="btn small ghost" id="apAdd" style="margin-top:8px;">+ Type one in</button>
   <div class="hint" id="apHint"></div>
 
   <h3>Fitting &amp; discount</h3>
@@ -330,6 +364,18 @@
 </main>
 </div>
 
+<div class="lib-overlay" id="lib" hidden>
+  <div class="lib-panel">
+    <div class="lib-head">
+      <h2 id="libTitle">Items</h2>
+      <input type="text" id="libSearch" placeholder="Search…">
+      <button class="btn" id="libClose">Done</button>
+    </div>
+    <div class="lib-chips" id="libChips"></div>
+    <div class="lib-grid" id="libGrid"></div>
+  </div>
+</div>
+
 <div id="printQuote"></div>
 <div id="printOrders"></div>
 
@@ -355,10 +401,10 @@ let S = freshState();
 function freshState(){
   return {
     customer:{name:'', title:'Kitchen', address:'', eircode:'', phone:'', email:'', proposal:nextProposal(), date:new Date().toISOString().slice(0,10), memo:DEFAULT_MEMO},
-    doors:{supplier:'', doorType:'', range:'', colour:'', priceRange:'', name:'', desc:'', photo:null},
-    carcass:{name:'Robson Oak', band:'2', desc:'Pale oak wood effect carcass material. Our most popular choice for kitchens.'},
+    doors:{supplier:'', doorType:'', range:'', colour:'', priceRange:'', name:'', desc:'', photo:null, style:null},
+    carcass:{name:'Robson Oak', band:'2', desc:'Pale oak wood effect carcass material. Our most popular choice for kitchens.', photo:null},
     result:null, filename:'', pricing:null, overrides:{},
-    accessories:[], worktop:{name:'', desc:'', price:'', separate:true},
+    accessories:[], worktop:{name:'', desc:'', price:'', separate:true, photo:null},
     appliances:[], fitting:{price:'', desc:DEFAULT_FIT}, discount:0,
   };
 }
@@ -407,7 +453,6 @@ const q = encodeURIComponent;
 async function loadSuppliers(){
   fill(supplierSelect, await getJSON('/api/catalogue/suppliers'), 'Supplier…', S.doors.supplier);
   if (S.doors.supplier) { await loadTypes(true); }
-  await loadPriceRanges();
 }
 async function loadTypes(restore){
   fill(doorTypeSelect, await getJSON(`/api/catalogue/door-types?supplier=${q(supplierSelect.value)}`), 'Door type…', restore ? S.doors.doorType : '');
@@ -424,49 +469,41 @@ supplierSelect.onchange = async () => {
   S.doors.supplier = supplierSelect.value; S.doors.doorType = S.doors.range = S.doors.colour = '';
   fill(doorTypeSelect, [], 'Door type…'); fill(colourSelect, [], 'Colour…'); rangeSelect.style.display = 'none';
   if (supplierSelect.value) await loadTypes(false);
-  await loadPriceRanges(); save();
+  save();
 };
-doorTypeSelect.onchange = async () => { S.doors.doorType = doorTypeSelect.value; S.doors.range = S.doors.colour = ''; if (doorTypeSelect.value) await loadRanges(false); autoPriceRange(); save(); };
-rangeSelect.onchange = async () => { S.doors.range = rangeSelect.value; await loadRanges(true); autoPriceRange(); save(); };
-colourSelect.onchange = () => { S.doors.colour = colourSelect.value; autoPriceRange(); save(); };
+doorTypeSelect.onchange = async () => { S.doors.doorType = doorTypeSelect.value; S.doors.range = S.doors.colour = ''; if (doorTypeSelect.value) await loadRanges(false); save(); };
+rangeSelect.onchange = async () => { S.doors.range = rangeSelect.value; await loadRanges(true); save(); };
+colourSelect.onchange = () => { S.doors.colour = colourSelect.value; save(); };
 
-let priceRanges = [];
+let allRanges = null;
+const STYLE_SUPPLIER = {'OS Doors':'OS Doors', 'Trade Mouldings':'Trade Mouldings', 'Age-tek Doors':'Agetek', 'Agetek':'Agetek'};
 async function loadPriceRanges(){
-  const sup = supplierSelect.value;
-  priceRanges = await getJSON('/api/pricing/ranges' + (sup ? `?supplier=${q(sup)}` : ''));
-  const sel = $('priceRangeSelect');
-  sel.innerHTML = '<option value="">Choose…</option>' + priceRanges.map(r =>
-    `<option value="${esc(r.key)}">${esc(r.name)}${sup ? '' : ' — ' + esc(r.supplier)}${r.group ? ' (' + esc(r.group) + ')' : ''}</option>`).join('');
-  if (S.doors.priceRange) sel.value = S.doors.priceRange;
+  // Colours on offer = the price list ranges for the picked door style,
+  // e.g. "Buckingham" -> Buckingham Indigo Ash, Buckingham Dove Grey Ash…
+  if (!allRanges) allRanges = await getJSON('/api/pricing/ranges');
+  const st = S.doors.style, sel = $('priceRangeSelect');
+  if (!st) { sel.innerHTML = '<option value="">Pick a door style first…</option>'; return; }
+  const sup = STYLE_SUPPLIER[st.supplier] || '';
+  const word = st.name.split(/\s+-\s+|\s+/)[0].toLowerCase();
+  let list = allRanges.filter(r => (!sup || r.supplier === sup) && r.name.toLowerCase().includes(word));
+  $('priceHint').textContent = list.length ? '' : `${st.name.split(' - ')[0]} isn't on the price list yet. Pick the nearest door to price it from.`;
+  if (!list.length) list = allRanges.filter(r => !sup || r.supplier === sup);
+  const label = r => list.length && r.name.toLowerCase().startsWith(word) ? r.name.slice(word.length).replace(/^\s*-?\s*/, '') || r.name : r.name;
+  sel.innerHTML = '<option value="">Choose colour…</option>' + list.map(r => `<option value="${esc(r.key)}">${esc(label(r))}</option>`).join('');
+  if (list.some(r => r.key === S.doors.priceRange)) sel.value = S.doors.priceRange;
+  else if (list.length === 1) { sel.value = list[0].key; S.doors.priceRange = list[0].key; }
+  else { S.doors.priceRange = ''; }
+  $('priceRangeSelect').disabled = false;
 }
-function autoPriceRange(){
-  // Best match on the words of range + colour, e.g. Buckingham + Indigo Ash
-  const words = [rangeSelect.value, colourSelect.value, doorTypeSelect.value].join(' ').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
-  if (!words.length) return;
-  // The door range name has to be on the price list (e.g. "Buckingham"),
-  // otherwise a colour-only match would price the wrong door.
-  const styleWord = (rangeSelect.value || '').toLowerCase().split(/[^a-z0-9]+/).find(w => w.length > 2);
-  const pool = styleWord ? priceRanges.filter(r => r.name.toLowerCase().includes(styleWord)) : priceRanges;
-  $('priceHint').textContent = styleWord && !pool.length
-    ? `"${rangeSelect.value}" isn't on the price list. Pick the nearest door to price it from.` : '';
-  let best = null, bestScore = 0;
-  pool.forEach(r => {
-    const name = r.name.toLowerCase();
-    const score = words.reduce((s, w) => s + (name.includes(w) ? w.length : 0), 0);
-    if (score > bestScore) { best = r; bestScore = score; }
-  });
-  if (best) { $('priceRangeSelect').value = best.key; S.doors.priceRange = best.key; }
-  else if (styleWord) { $('priceRangeSelect').value = ''; S.doors.priceRange = ''; }
-  if (!S.doors.name || S.doors._autoName) {
-    const nm = [rangeSelect.value || doorTypeSelect.value, colourSelect.value].filter(Boolean).join(' - ');
-    if (nm) { $('doorName').value = S.doors.name = nm; S.doors._autoName = true; }
-  }
-  repriceIfReady();
-}
-$('priceRangeSelect').onchange = e => { S.doors.priceRange = e.target.value; save(); repriceIfReady(); };
+$('priceRangeSelect').onchange = e => {
+  S.doors.priceRange = e.target.value;
+  const st = S.doors.style, opt = e.target.selectedOptions[0];
+  if (st && opt && opt.value && (!S.doors.name || S.doors._autoName)) { $('doorName').value = S.doors.name = st.name.split(' - ')[0] + ' - ' + opt.textContent; S.doors._autoName = true; }
+  save(); repriceIfReady();
+};
 $('doorName').oninput = e => { S.doors.name = e.target.value; S.doors._autoName = false; save(); };
 $('doorDesc').oninput = e => { S.doors.desc = e.target.value; save(); };
-$('doorPhoto').onchange = e => readPhoto(e.target.files[0], url => { S.doors.photo = url; save(); });
+$('doorPhoto').onchange = e => readPhoto(e.target.files[0], url => { S.doors.photo = url; save(); renderPicked(); });
 function readPhoto(file, cb){
   if (!file) return;
   const img = new Image(), fr = new FileReader();
@@ -487,6 +524,98 @@ $('carcassName').oninput = e => {
 };
 $('carcassBand').onchange = e => { S.carcass.band = e.target.value; save(); repriceIfReady(); };
 $('carcassDesc').oninput = e => { S.carcass.desc = e.target.value; save(); };
+
+// ------------------------------------------------------------- item library (Houzz-style)
+// library.json is copied from the Houzz Pro "My Items" library:
+// {n:name, c:category, s:supplier, d:description, p:unit cost ex VAT, i:photo URL, k:SKU}
+const MARKUP = 1.0;   // 100% on cost, same as cabinets and fronts
+const GROUPS = {
+  fronts:     {title:'Door styles',      cats:c => /kitchen styles|other doors/i.test(c)},
+  carcass:    {title:'Cabinet colours',  cats:c => /carcass/i.test(c)},
+  worktops:   {title:'Worktops',         cats:c => /worktop/i.test(c)},
+  appliances: {title:'Appliances',       cats:c => /hood|dishwasher|oven|hob|washing|fre?e?zer|microwave|fridge|warming|wine|dryer|appliance/i.test(c)},
+  accessories:{title:'Accessories',      cats:c => !/kitchen styles|other doors|carcass|worktop|hood|dishwasher|oven|hob|washing|fre?e?zer|microwave|fridge|warming|wine|dryer|appliance|service|consumable|expense|designer fee|flooring/i.test(c)},
+};
+let LIB = [];
+fetch('library.json').then(r => r.ok ? r.json() : []).then(d => { LIB = d; renderPicked(); }).catch(() => {});
+const sellOf = it => it.p > 0 ? Math.round(it.p * (1 + MARKUP) * 100) / 100 : '';
+
+let libMode = null, libCat = '', libCb = null, libMulti = false;
+function openLib(mode, cb, multi){
+  libMode = mode; libCb = cb; libMulti = !!multi; libCat = '';
+  $('libTitle').textContent = GROUPS[mode].title; $('libSearch').value = '';
+  const cats = [...new Set(LIB.filter(i => GROUPS[mode].cats(i.c)).map(i => i.c))].sort();
+  $('libChips').innerHTML = cats.length > 1 ? ['All', ...cats].map(c => `<button class="chip${c === 'All' ? ' on' : ''}" data-cat="${esc(c === 'All' ? '' : c)}">${esc(c)}</button>`).join('') : '';
+  $('libChips').style.display = cats.length > 1 ? '' : 'none';
+  $('libChips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    libCat = b.dataset.cat; $('libChips').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b)); renderLib();
+  });
+  $('libClose').textContent = multi ? 'Done' : 'Close';
+  $('lib').hidden = false; renderLib(); $('libSearch').focus();
+}
+function renderLib(){
+  const term = $('libSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const list = LIB.filter(i => GROUPS[libMode].cats(i.c) && (!libCat || i.c === libCat) &&
+    term.every(w => (i.n + ' ' + i.c + ' ' + (i.d || '')).toLowerCase().includes(w)));
+  const count = it => libMode === 'accessories' ? S.accessories.filter(a => a.libName === it.n).reduce((s, a) => s + num(a.qty), 0)
+                    : libMode === 'appliances' ? S.appliances.filter(a => a.libName === it.n).length : 0;
+  const selected = it => (libMode === 'fronts' && S.doors.style && S.doors.style.name === it.n) || (libMode === 'carcass' && S.carcass.libName === it.n) || (libMode === 'worktops' && S.worktop.libName === it.n);
+  $('libGrid').innerHTML = list.map((it, i) => { const c = count(it), sp = sellOf(it); return `<div class="tile${selected(it) ? ' sel' : ''}" data-i="${LIB.indexOf(it)}">
+    ${c ? `<span class="badge">${c} added</span>` : ''}
+    <div class="ph">${it.i ? `<img loading="lazy" src="${esc(it.i)}" alt="">` : ''}</div>
+    <div class="bd"><div class="nm">${esc(it.n)}</div>${libMode === 'fronts' || libMode === 'carcass' ? '' : `<div class="pr">${sp === '' ? 'Price on quote' : eur(sp) + ' ex VAT'}</div>`}</div></div>`; }).join('')
+    || '<p style="color:var(--dim);">Nothing matches.</p>';
+  $('libGrid').querySelectorAll('.tile').forEach(t => t.onclick = () => {
+    libCb(LIB[+t.dataset.i]);
+    if (libMulti) renderLib(); else closeLib();
+  });
+}
+function closeLib(){ $('lib').hidden = true; renderAcc(); renderAp(); renderPicked(); }
+$('libSearch').oninput = renderLib;
+$('libClose').onclick = closeLib;
+$('lib').onclick = e => { if (e.target === $('lib')) closeLib(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lib').hidden) closeLib(); });
+
+function pickedHTML(photo, name, desc, empty){
+  return name ? `${photo ? `<img src="${esc(photo)}" alt="">` : '<span class="noimg"></span>'}<div><div class="nm">${esc(name)}</div>${desc ? `<div class="ds">${esc(desc)}</div>` : ''}</div><button class="btn small ghost chg">Change</button>`
+              : `<span class="noimg"></span><div><div class="nm">${esc(empty)}</div><div class="ds">Click to choose from your item library</div></div><button class="btn small copper chg">Choose</button>`;
+}
+function renderPicked(){
+  const st = S.doors.style;
+  $('doorPicked').innerHTML = pickedHTML(S.doors.photo || (st && st.i), st && st.name, st && st.d, 'No door style picked');
+  $('carcassPicked').innerHTML = pickedHTML(S.carcass.photo, S.carcass.libName, '', 'No cabinet colour picked');
+  $('wtPicked').innerHTML = pickedHTML(S.worktop.photo, S.worktop.libName, '', 'No worktop picked');
+}
+$('doorPicked').onclick = () => openLib('fronts', it => {
+  S.doors.style = {name:it.n, supplier:it.s, d:it.d || '', i:it.i || ''};
+  S.doors.photo = it.i || null; S.doors.desc = it.d || ''; $('doorDesc').value = S.doors.desc;
+  S.doors.name = it.n.split(' - ')[0]; S.doors._autoName = true; $('doorName').value = S.doors.name;
+  S.doors.priceRange = ''; save();
+  loadPriceRanges().then(() => { if (S.doors.priceRange) $('priceRangeSelect').onchange({target:$('priceRangeSelect')}); repriceIfReady(); });
+});
+$('carcassPicked').onclick = () => openLib('carcass', it => {
+  S.carcass.libName = it.n; S.carcass.photo = it.i || null;
+  S.carcass.name = it.n.replace(/\s*-\s*cabinet colou?r.*$/i, '').replace(/\s*\(copy\)$/i, '');
+  if (it.d) S.carcass.desc = it.d;
+  $('carcassName').value = S.carcass.name; $('carcassDesc').value = S.carcass.desc;
+  const m = decors.find(d => d.decor.toLowerCase() === S.carcass.name.toLowerCase());
+  if (m) { S.carcass.band = String(m.band); $('carcassBand').value = S.carcass.band; }
+  save(); repriceIfReady();
+});
+$('wtPicked').onclick = () => openLib('worktops', it => {
+  S.worktop.libName = it.n; S.worktop.photo = it.i || null; S.worktop.name = it.n; S.worktop.desc = it.d || '';
+  const sp = sellOf(it); if (sp !== '') S.worktop.price = sp;
+  $('wtName').value = S.worktop.name; $('wtDesc').value = S.worktop.desc; $('wtPrice').value = S.worktop.price || ''; save();
+});
+$('accBrowse').onclick = () => openLib('accessories', it => {
+  const ex = S.accessories.find(a => a.libName === it.n);
+  if (ex) ex.qty = num(ex.qty) + 1;
+  else S.accessories.push({name:it.n, desc:it.d || '', qty:1, price:sellOf(it), photo:it.i || null, libName:it.n});
+  save();
+}, true);
+$('apBrowse').onclick = () => openLib('appliances', it => {
+  S.appliances.push({name:it.n, desc:it.d || '', price:sellOf(it), photo:it.i || null, libName:it.n}); save();
+}, true);
 
 // ------------------------------------------------------------- step 2: upload
 const dz = $('dropzone'), fileInput = $('fileInput'), statusEl = $('status');
@@ -559,51 +688,39 @@ function renderModel(){
 }
 
 // ------------------------------------------------------------- step 3
-let storage = [];
-getJSON('/api/pricing/storage').then(d => { storage = d; renderCatalogue(); });
-function renderCatalogue(){
-  const term = $('catSearch').value.trim().toLowerCase();
-  const list = storage.filter(s => !term || s.name.toLowerCase().includes(term));
-  $('catalogue').innerHTML = list.map((s, i) => `<div class="row"><span class="nm">${esc(niceName(s.name))}</span><span class="pr">${eur(s.price)}</span><button class="btn small" data-add="${storage.indexOf(s)}">Add</button></div>`).join('')
-    || '<div class="row"><span class="nm" style="color:var(--dim);">Nothing matches.</span></div>';
-  $('catalogue').querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
-    const s = storage[+b.dataset.add];
-    S.accessories.push({name:niceName(s.name), desc:'', qty:1, price:s.price}); save(); renderAcc();
-  });
-}
-function niceName(n){ return n === n.toUpperCase() ? n.toLowerCase().replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/mm\b/gi, 'mm') : n; }
-$('catSearch').oninput = renderCatalogue;
 $('cuAdd').onclick = () => {
   if (!$('cuName').value.trim()) { $('cuName').focus(); return; }
-  S.accessories.push({name:$('cuName').value.trim(), desc:$('cuDesc').value.trim(), qty:Math.max(1, num($('cuQty').value)), price:num($('cuPrice').value)});
+  S.accessories.push({name:$('cuName').value.trim(), desc:$('cuDesc').value.trim(), qty:Math.max(1, num($('cuQty').value)), price:num($('cuPrice').value), photo:null});
   $('cuName').value = $('cuDesc').value = $('cuPrice').value = ''; $('cuQty').value = 1; save(); renderAcc();
 };
 function renderAcc(){
   $('accBody').innerHTML = S.accessories.map((a, i) => `<tr>
+    <td>${a.photo ? `<img class="thumb" src="${esc(a.photo)}" alt="">` : '<span class="thumb"></span>'}</td>
     <td><input type="text" data-a="${i}" data-f="name" value="${esc(a.name)}"></td>
     <td><input type="text" data-a="${i}" data-f="desc" value="${esc(a.desc)}" placeholder="Shown on the quote"></td>
     <td class="num"><input type="number" data-a="${i}" data-f="qty" value="${a.qty}" min="1" style="width:60px;"></td>
-    <td class="num"><input type="number" data-a="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;"></td>
+    <td class="num"><input type="number" data-a="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;${a.price === '' ? 'border-color:var(--err);' : ''}" placeholder="price"></td>
     <td class="num">${eur(num(a.price) * num(a.qty))}</td><td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
-    || '<tr><td colspan="6" style="color:var(--dim);">No accessories yet. Add from the catalogue or as a custom item.</td></tr>';
+    || '<tr><td colspan="7" style="color:var(--dim);">No accessories yet. Browse your items or add a custom one.</td></tr>';
   $('accBody').querySelectorAll('input').forEach(el => el.onchange = () => {
-    const a = S.accessories[+el.dataset.a]; a[el.dataset.f] = ['qty','price'].includes(el.dataset.f) ? num(el.value) : el.value; save(); renderAcc();
+    const a = S.accessories[+el.dataset.a]; a[el.dataset.f] = el.dataset.f === 'qty' ? Math.max(1, num(el.value)) : el.dataset.f === 'price' ? (el.value === '' ? '' : num(el.value)) : el.value; save(); renderAcc();
   });
   $('accBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.accessories.splice(+b.dataset.del, 1); save(); renderAcc(); });
 }
 function renderAp(){
   $('apBody').innerHTML = S.appliances.map((a, i) => `<tr>
+    <td>${a.photo ? `<img class="thumb" src="${esc(a.photo)}" alt="">` : '<span class="thumb"></span>'}</td>
     <td><input type="text" data-p="${i}" data-f="name" value="${esc(a.name)}" placeholder="e.g. NordMende 60cm induction hob"></td>
     <td><input type="text" data-p="${i}" data-f="desc" value="${esc(a.desc)}"></td>
     <td class="num"><input type="number" data-p="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;"></td>
     <td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
-    || '<tr><td colspan="4" style="color:var(--dim);">No appliances on this quote.</td></tr>';
+    || '<tr><td colspan="5" style="color:var(--dim);">No appliances on this quote.</td></tr>';
   $('apBody').querySelectorAll('input').forEach(el => el.onchange = () => { const a = S.appliances[+el.dataset.p]; a[el.dataset.f] = el.dataset.f === 'price' ? num(el.value) : el.value; save(); });
   $('apBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.appliances.splice(+b.dataset.del, 1); save(); renderAp(); });
 }
-$('apAdd').onclick = () => { S.appliances.push({name:'', desc:'', price:''}); save(); renderAp(); };
+$('apAdd').onclick = () => { S.appliances.push({name:'', desc:'', price:'', photo:null}); save(); renderAp(); };
 function renderStep3(){
-  renderAcc(); renderAp();
+  renderAcc(); renderAp(); renderPicked();
   const wc = S.result && S.result.doors_and_trim.worktop_cutting;
   $('wtHint').textContent = wc ? `From the model: ${S.result.doors_and_trim.worktop_area_m2.toFixed(2)}m², ${wc.lengths_required} × 4.05m lengths (${wc.board_lengths_mm.map(l => (l/1000).toFixed(2) + 'm').join(', ')}).` : '';
   $('apHint').textContent = S.result && S.result.appliances.length ? 'In the model: ' + S.result.appliances.map(a => a.description).join(', ') : '';
@@ -649,6 +766,8 @@ function buildQuote(){
   if (S.result && !S.doors.priceRange) warn.push('No door price range picked, so fronts, panels and trim are unpriced (step 2).');
   if (t.missing.length) warn.push(`${t.missing.length} line(s) have no price. Open the staff breakdown below and type a price for each.`);
   if (!S.fitting.price) warn.push('No fitting price entered (step 3).');
+  const noPrice = [...S.accessories, ...S.appliances].filter(x => x.price === '' || x.price == null).map(x => x.name);
+  if (noPrice.length) warn.push('No price yet for: ' + noPrice.join(', ') + ' (step 3).');
   $('pricingWarn').innerHTML = warn.length ? `<div class="warnbox">${warn.map(esc).join('<br>')}</div>` : '';
   if (t.missing.length) $('breakdownWrap').open = true;
 
@@ -678,15 +797,15 @@ function quoteHTML(t){
 
   let rows = `<tr class="sec"><td>Kitchen Design</td><td>${eur(t.kitchen)}</td></tr>`;
   if (S.doors.name) rows += itemHTML(S.doors.name, S.doors.desc, S.doors.photo);
-  if (S.carcass.name) rows += itemHTML(`${S.carcass.name} - Cabinet Colour`, S.carcass.desc);
-  if (!S.worktop.separate && S.worktop.name) rows += itemHTML(S.worktop.name, S.worktop.desc);
-  S.accessories.forEach(a => rows += itemHTML((num(a.qty) > 1 ? a.qty + ' × ' : '') + a.name, a.desc));
+  if (S.carcass.name) rows += itemHTML(`${S.carcass.name} - Cabinet Colour`, S.carcass.desc, S.carcass.photo);
+  if (!S.worktop.separate && S.worktop.name) rows += itemHTML(S.worktop.name, S.worktop.desc, S.worktop.photo);
+  S.accessories.forEach(a => rows += itemHTML((num(a.qty) > 1 ? a.qty + ' × ' : '') + a.name, a.desc, a.photo));
   if (num(S.fitting.price)) rows += itemHTML('Kitchen Fitting', S.fitting.desc);
   if (S.worktop.separate && (S.worktop.name || t.wt)) {
-    rows += `<tr class="sec"><td>Worktop</td><td>${eur(t.wt)}</td></tr>` + itemHTML(S.worktop.name || 'Worktop', S.worktop.desc);
+    rows += `<tr class="sec"><td>Worktop</td><td>${eur(t.wt)}</td></tr>` + itemHTML(S.worktop.name || 'Worktop', S.worktop.desc, S.worktop.photo);
   }
   if (S.appliances.length) {
-    rows += `<tr class="sec"><td>Appliances</td><td>${eur(t.ap)}</td></tr>` + S.appliances.map(a => itemHTML(a.name, a.desc)).join('');
+    rows += `<tr class="sec"><td>Appliances</td><td>${eur(t.ap)}</td></tr>` + S.appliances.map(a => itemHTML(a.name, a.desc, a.photo)).join('');
   }
   const p = [0.5, 0.4, 0.1].map(f => Math.round(t.total * f * 100) / 100);
   p[2] = Math.round((t.total - p[0] - p[1]) * 100) / 100;
@@ -806,7 +925,7 @@ function hydrate(){
   $('carcassName').value = S.carcass.name || ''; $('carcassBand').value = S.carcass.band || '2'; $('carcassDesc').value = S.carcass.desc || '';
   $('wtName').value = S.worktop.name || ''; $('wtDesc').value = S.worktop.desc || ''; $('wtPrice').value = S.worktop.price || ''; $('wtSeparate').checked = S.worktop.separate !== false;
   $('fitPrice').value = S.fitting.price || ''; $('fitDesc').value = S.fitting.desc || ''; $('discount').value = S.discount || 0;
-  loadSuppliers();
+  loadSuppliers(); loadPriceRanges(); renderPicked();
   if (S.result) { renderModel(); setStatus(`Loaded: ${S.filename || 'model'} (${S.result.summary.cabinet_count} cabinets).`, 'ok'); }
   else { $('modelResults').style.display = 'none'; setStatus('', ''); }
   updateTop();
