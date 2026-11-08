@@ -3,551 +3,806 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alpine Edge Carpentry — Quoting Engine</title>
+<meta name="robots" content="noindex, nofollow">
+<title>House of Kitchens — Quoting Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1C2027;
-    --ink-soft:#2A3038;
-    --paper:#F7F5F0;
-    --paper-dim:#EDEAE2;
-    --walnut:#8B5A3C;
-    --walnut-light:#B98A63;
-    --blueprint:#4A7C94;
-    --blueprint-light:#6FA8C0;
-    --line:#D8D3C7;
-    --text:#3A3F47;
-    --text-dim:#767b82;
-    --ok:#5B8266;
+    --navy:#1f2529; --navy-2:#2b3238; --copper:#c08a52; --copper-2:#d9a877;
+    --paper:#f6f4f0; --line:#ddd8cf; --line-2:#ece8e1; --text:#33383d; --dim:#7a7f84;
+    --ok:#4f7a5c; --err:#b4544a; --warn:#b07a2a;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-  }
-  h1,h2,h3,.mono{font-family:'JetBrains Mono',monospace;}
-  .display{font-family:'Space Grotesk',sans-serif;}
+  body{margin:0; background:var(--paper); color:var(--text); font-family:'Montserrat',sans-serif; font-size:14px;}
+  button,input,select,textarea{font-family:inherit; font-size:14px;}
 
-  header{
-    background:
-      linear-gradient(180deg, var(--ink) 0%, var(--ink-soft) 100%);
-    color:var(--paper);
-    padding:48px 32px 40px;
-    position:relative;
-    overflow:hidden;
-  }
-  header::before{
-    content:"";
-    position:absolute; inset:0;
-    background-image:
-      linear-gradient(var(--blueprint) 1px, transparent 1px),
-      linear-gradient(90deg, var(--blueprint) 1px, transparent 1px);
-    background-size:32px 32px;
-    opacity:0.06;
-  }
-  header::after{
-    content:"";
-    position:absolute; right:-60px; top:-60px; width:220px; height:220px;
-    border:1px solid var(--walnut-light);
-    opacity:0.35; transform:rotate(45deg);
-  }
-  .eyebrow{
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px; letter-spacing:0.18em; text-transform:uppercase;
-    color:var(--blueprint-light); margin:0 0 10px; position:relative;
-  }
-  h1.brand{
-    font-size:clamp(32px,5vw,48px); font-weight:700; margin:0;
-    letter-spacing:-0.01em; position:relative;
-  }
-  h1.brand span{color:var(--walnut-light);}
-  .tagline{
-    color:#B9BEC6; max-width:520px; margin:14px 0 0; font-size:15px;
-    line-height:1.55; position:relative;
-  }
+  /* ---------- app chrome ---------- */
+  .topbar{background:var(--navy); color:#fff; display:flex; align-items:center; gap:16px; padding:14px 24px;}
+  .topbar img{height:44px; width:44px; border-radius:4px;}
+  .topbar h1{font-size:17px; font-weight:600; margin:0; letter-spacing:.02em;}
+  .topbar .sub{font-size:12px; color:#aeb4b9;}
+  .topbar .spacer{flex:1;}
+  .topbar button{background:transparent; color:#fff; border:1px solid #4a535a; padding:7px 12px; border-radius:4px; cursor:pointer; font-size:12px;}
+  .topbar button:hover{border-color:var(--copper);}
 
-  main{max-width:980px; margin:0 auto; padding:40px 24px 80px;}
+  .steps{display:flex; background:#fff; border-bottom:1px solid var(--line); padding:0 24px; overflow-x:auto;}
+  .steps button{background:none; border:none; border-bottom:3px solid transparent; padding:16px 18px 13px; cursor:pointer; color:var(--dim); font-weight:600; white-space:nowrap;}
+  .steps button .n{display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; background:var(--line-2); color:var(--dim); font-size:12px; margin-right:8px;}
+  .steps button.active{color:var(--navy); border-bottom-color:var(--copper);}
+  .steps button.active .n{background:var(--copper); color:#fff;}
+  .steps button.done .n{background:var(--ok); color:#fff;}
 
-  .door-picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
-  .door-picker select{
-    font-family:'JetBrains Mono',monospace; font-size:13px; padding:9px 12px;
-    border:1px solid var(--line); background:#fff; color:var(--ink);
-    border-radius:2px; min-width:160px;
-  }
-  .door-picker select:disabled{color:var(--text-dim); background:var(--paper-dim);}
+  main{max-width:1040px; margin:0 auto; padding:28px 24px 100px;}
+  .step{display:none;} .step.active{display:block;}
+  h2{font-size:20px; margin:0 0 4px; color:var(--navy);}
+  .lead{color:var(--dim); margin:0 0 22px;}
+  h3{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--navy); margin:30px 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+  .card{background:#fff; border:1px solid var(--line); border-radius:6px; padding:20px;}
 
-  .dropzone{
-    position:relative;
-    border:1px dashed var(--line);
-    background:#fff;
-    border-radius:2px;
-    padding:56px 24px;
-    text-align:center;
-    cursor:pointer;
-    transition:border-color .2s ease, background .2s ease;
-  }
-  .dropzone.drag{border-color:var(--blueprint); background:#F1F7F9;}
-  .dropzone.error{border-color:#B4544A;}
-  .corner{position:absolute; width:18px; height:18px; border:2px solid var(--walnut); opacity:0.55; transition:opacity .2s ease, transform .2s ease;}
-  .dropzone.drag .corner{opacity:1; border-color:var(--blueprint);}
-  .corner.tl{top:10px; left:10px; border-right:none; border-bottom:none;}
-  .corner.tr{top:10px; right:10px; border-left:none; border-bottom:none;}
-  .corner.bl{bottom:10px; left:10px; border-right:none; border-top:none;}
-  .corner.br{bottom:10px; right:10px; border-left:none; border-top:none;}
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px;}
+  .grid .full{grid-column:1/-1;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--dim); margin-bottom:5px;}
+  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
+    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--text);}
+  textarea{min-height:90px; resize:vertical; line-height:1.5;}
+  input:focus,select:focus,textarea:focus{outline:none; border-color:var(--copper);}
+  .hint{font-size:12px; color:var(--dim); margin-top:4px;}
 
-  .dz-title{font-size:18px; font-weight:600; color:var(--ink); margin:0 0 6px; font-family:'Space Grotesk',sans-serif;}
-  .dz-sub{font-size:13px; color:var(--text-dim); margin:0;}
-  .dz-sub code{background:var(--paper-dim); padding:1px 6px; border-radius:3px; font-family:'JetBrains Mono',monospace;}
+  .nav{display:flex; justify-content:space-between; margin-top:28px;}
+  .btn{background:var(--navy); color:#fff; border:none; padding:11px 20px; border-radius:4px; cursor:pointer; font-weight:600;}
+  .btn:hover{background:var(--navy-2);}
+  .btn.copper{background:var(--copper);} .btn.copper:hover{background:#ad7944;}
+  .btn.ghost{background:transparent; color:var(--navy); border:1px solid var(--line);}
+  .btn.small{padding:6px 11px; font-size:12px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* ---------- step 2 ---------- */
+  .pickers{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .dropzone{position:relative; border:2px dashed var(--line); background:#fff; border-radius:6px; padding:44px 24px; text-align:center; cursor:pointer; margin-top:18px;}
+  .dropzone.drag{border-color:var(--copper); background:#fbf6f0;}
+  .dropzone.error{border-color:var(--err);}
+  .dropzone p{margin:0;} .dropzone .t{font-size:16px; font-weight:600; color:var(--navy); margin-bottom:6px;}
   input[type=file]{display:none;}
+  .status{margin-top:12px; font-size:13px;} .status.err{color:var(--err);} .status.ok{color:var(--ok);}
 
-  .status{margin-top:16px; font-size:13px; font-family:'JetBrains Mono',monospace;}
-  .status.err{color:#B4544A;}
-  .status.ok{color:var(--ok);}
+  table{width:100%; border-collapse:collapse; background:#fff; font-size:13px;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); font-weight:600; padding:9px 10px; border-bottom:1px solid var(--line);}
+  td{padding:8px 10px; border-bottom:1px solid var(--line-2); vertical-align:top;}
+  td.num,th.num{text-align:right; white-space:nowrap;}
+  td.code{font-weight:600; color:var(--copper); white-space:nowrap;}
+  .pill{display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; background:var(--line-2); color:var(--dim);}
+  .pill.ok{background:#e4efe7; color:var(--ok);} .pill.err{background:#f6e3e1; color:var(--err);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin:6px 0 10px;}
+  .stat{background:#fff; border:1px solid var(--line); border-radius:6px; padding:14px;}
+  .stat .k{font-size:11px; text-transform:uppercase; color:var(--dim); letter-spacing:.05em;}
+  .stat .v{font-size:22px; font-weight:700; color:var(--navy); margin-top:4px;}
+  .stat .s{font-size:12px; color:var(--dim); margin-top:2px;}
+  .warnbox{background:#fbf3e6; border-left:3px solid var(--warn); padding:12px 14px; font-size:13px; margin:14px 0; border-radius:0 4px 4px 0;}
 
-  section.results{margin-top:48px; display:none;}
-  section.results.show{display:block; animation:fade .4s ease;}
-  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  /* ---------- step 3 ---------- */
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .catalogue{max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:6px; background:#fff;}
+  .catalogue .row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line-2);}
+  .catalogue .row .nm{flex:1; font-size:13px;}
+  .catalogue .row .pr{font-size:13px; color:var(--dim); white-space:nowrap;}
+  .lines input{padding:6px 8px; font-size:13px;}
+  .lines td{vertical-align:middle;}
+  .x{background:none; border:none; color:var(--err); cursor:pointer; font-size:18px; line-height:1;}
 
-  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:10px;}
-  .section-head h2{font-size:15px; text-transform:uppercase; letter-spacing:0.08em; margin:0; color:var(--ink);}
-  .count-pill{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);}
+  /* ---------- step 4 ---------- */
+  .totals-bar{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px;}
+  .unpriced td{background:#fdf1ef;}
+  .unpriced input{width:90px;}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin:18px 0;}
 
-  .trim-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:44px;}
-  .trim-card{
-    position:relative; background:#fff; border:1px solid var(--line); padding:18px 16px 16px;
+  /* ---------- printed documents ---------- */
+  .doc{background:#fff; color:#2b2f33; width:100%; max-width:820px; margin:0 auto; padding:48px 52px; border:1px solid var(--line); box-shadow:0 2px 12px rgba(0,0,0,.05); font-size:12.5px;}
+  .doc .hdr{display:flex; justify-content:space-between; align-items:flex-start;}
+  .doc .hdr h1{font-size:26px; margin:0 0 6px; font-weight:700; color:#1f2529;}
+  .doc .hdr .addr{color:#5d6268; line-height:1.6;}
+  .doc .hdr img{width:92px; height:92px;}
+  .doc .titlerow{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d9d9d9; padding:22px 0 8px; margin-top:6px;}
+  .doc .titlerow .t{font-size:16px; font-weight:600;}
+  .doc .small-k{font-size:11px; color:#5d6268;}
+  .doc .billto{display:flex; justify-content:space-between; margin-top:20px; line-height:1.6;}
+  .doc .billto .k{font-size:15px; font-weight:600; color:#1f2529;}
+  .doc .memo{margin-top:26px; color:#3d4247; line-height:1.55;}
+  .doc .memo .mk{color:#7a7f84; margin-bottom:10px;}
+  .doc .memo p{margin:0 0 10px; white-space:pre-wrap;}
+  .doc .memo strong{display:block; margin-bottom:2px;}
+  .doc table.q{margin-top:22px; font-size:12.5px;}
+  .doc table.q th{font-size:12px; text-transform:none; letter-spacing:0; color:#7a7f84; font-weight:500; border-bottom:1px solid #e3e3e3; padding:10px 0;}
+  .doc table.q th:last-child{text-align:right;}
+  .doc tr.sec td{background:#f3f3f1; font-weight:600; font-size:13px; padding:12px 10px;}
+  .doc tr.sec td:last-child{text-align:right;}
+  .doc tr.item td{padding:12px 0 14px; border-bottom:1px solid #ececec;}
+  .doc .itm{display:flex; gap:18px;}
+  .doc .itm .ph:empty{display:none;}
+  .doc .itm .ph{width:96px; min-width:96px; height:72px; background:#f1efeb; border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center;}
+  .doc .itm .ph img{width:100%; height:100%; object-fit:cover;}
+  .doc .itm .nm{font-weight:600; margin-bottom:4px;}
+  .doc .itm .ds{color:#4a4f54; line-height:1.5; white-space:pre-wrap;}
+  .doc .tot{margin-left:auto; width:300px; margin-top:26px;}
+  .doc .tot div{display:flex; justify-content:space-between; padding:6px 0;}
+  .doc .tot .big{border-top:1px solid #ddd; margin-top:8px; padding-top:12px; font-weight:700; font-size:14px;}
+  .doc .pay{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:30px;}
+  .doc .pay > div{border:1px solid #e3e3e3; padding:12px; border-radius:3px;}
+  .doc .pay .a{font-weight:700; font-size:14px;}
+  .doc .terms{margin-top:30px; font-size:11.5px; line-height:1.55; color:#3d4247;}
+  .doc .terms h4{font-size:12px; margin:14px 0 4px;}
+  .doc .terms p,.doc .terms ul{margin:0 0 4px;}
+  .doc .sign{display:flex; justify-content:space-between; margin-top:50px;}
+  .doc .sign div{width:44%; border-top:1px solid #999; padding-top:6px; font-size:11px; color:#5d6268;}
+  .doc h2.ol{font-size:18px; margin:26px 0 8px; color:#1f2529; border-bottom:2px solid var(--copper); padding-bottom:6px;}
+  .doc table.ol th{color:#5d6268;}
+  .doc .page-break{page-break-before:always;}
+
+  @media print{
+    @page{size:A4; margin:14mm;}
+    body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    body > *{display:none !important;}
+    body.print-quote #printQuote, body.print-orders #printOrders{display:block !important;}
+    .doc{border:none; box-shadow:none; padding:0; max-width:none;}
+    .doc tr.item, .doc .itm{page-break-inside:avoid;}
   }
-  .trim-card .tick{position:absolute; top:0; left:16px; width:1px; height:8px; background:var(--walnut);}
-  .trim-card .cat{font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-dim); margin:0 0 8px;}
-  .trim-card .len{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--ink); margin:0;}
-  .trim-card .len small{font-size:13px; font-weight:500; color:var(--text-dim);}
-  .trim-card .pieces{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--blueprint); margin-top:6px;}
-
-  table{width:100%; border-collapse:collapse; font-size:13px; background:#fff;}
-  th{
-    text-align:left; font-family:'JetBrains Mono',monospace; font-weight:500;
-    font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
-    color:var(--text-dim); padding:10px 12px; border-bottom:1px solid var(--line);
-  }
-  td{padding:10px 12px; border-bottom:1px solid var(--paper-dim); vertical-align:top;}
-  td.mono, .code-cell{font-family:'JetBrains Mono',monospace; color:var(--walnut); font-weight:500;}
-  td.num{font-family:'JetBrains Mono',monospace; text-align:right; white-space:nowrap;}
-  tr:hover td{background:#FBFAF7;}
-
-  .toolbar{display:flex; gap:10px; margin-top:16px;}
-  button.dl{
-    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.04em;
-    background:var(--ink); color:var(--paper); border:none; padding:10px 16px;
-    cursor:pointer; text-transform:uppercase;
-  }
-  button.dl:hover{background:var(--ink-soft);}
-  button.dl.secondary{background:transparent; color:var(--ink); border:1px solid var(--line);}
-
-  .caveat{
-    margin-top:56px; padding:16px 18px; background:var(--paper-dim); border-left:2px solid var(--walnut);
-    font-size:13px; line-height:1.6; color:var(--text);
-  }
-  .caveat strong{color:var(--ink);}
+  #printQuote,#printOrders{display:none;}
+  @media (max-width:760px){ .grid,.two{grid-template-columns:1fr;} .pickers{grid-template-columns:1fr 1fr;} .doc{padding:24px;} }
 </style>
 </head>
 <body>
 
-<header>
-  <p class="eyebrow">Alpine Edge Carpentry</p>
-  <h1 class="brand display">Quoting <span>Engine</span></h1>
-  <p class="tagline">Upload a Winner Flex 3D kitchen model and get an instant breakdown of every cabinet, and the linear metres of kickboard, cornice, light pelmet and filler panel.</p>
-</header>
+<div class="topbar">
+  <img src="logo.png" alt="House of Kitchens">
+  <div><h1>Quoting Tool</h1><div class="sub" id="topJob">New quote</div></div>
+  <div class="spacer"></div>
+  <button id="btnSaveDraft" title="Download this quote as a file you can open again">Save draft</button>
+  <button id="btnOpenDraft">Open draft</button>
+  <button id="btnNew">New quote</button>
+  <input type="file" id="draftFile" accept=".json">
+</div>
+
+<nav class="steps" id="steps">
+  <button data-step="1" class="active"><span class="n">1</span>Customer</button>
+  <button data-step="2"><span class="n">2</span>Kitchen model</button>
+  <button data-step="3"><span class="n">3</span>Accessories &amp; extras</button>
+  <button data-step="4"><span class="n">4</span>Quote</button>
+</nav>
 
 <main>
-  <div class="section-head">
-    <h2 class="display">Door style &amp; colour</h2>
+<!-- ================= STEP 1 ================= -->
+<section class="step active" data-step="1">
+  <h2>Customer details</h2>
+  <p class="lead">Who the quote is for. This goes in the "Bill To" box on the quote.</p>
+  <div class="card grid">
+    <div><label>Customer name</label><input type="text" data-c="name" placeholder="e.g. Paddy Tuohy"></div>
+    <div><label>Job title on quote</label><input type="text" data-c="title" placeholder="e.g. Kitchen"></div>
+    <div class="full"><label>Address</label><input type="text" data-c="address" placeholder="Street, town, county"></div>
+    <div><label>Eircode</label><input type="text" data-c="eircode"></div>
+    <div><label>Phone</label><input type="tel" data-c="phone"></div>
+    <div><label>Email</label><input type="email" data-c="email"></div>
+    <div></div>
+    <div><label>Proposal number</label><input type="text" data-c="proposal" placeholder="ES-10073"></div>
+    <div><label>Date</label><input type="date" data-c="date"></div>
+    <div class="full"><label>Message to customer (top of the quote)</label><textarea data-c="memo" style="min-height:150px;"></textarea></div>
   </div>
-  <div class="door-picker" id="doorPicker">
-    <select id="supplierSelect"><option value="">Supplier…</option></select>
-    <select id="doorTypeSelect" disabled><option value="">Door style…</option></select>
-    <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
-    <select id="colourSelect" disabled><option value="">Colour…</option></select>
+  <div class="nav"><span></span><button class="btn copper" data-go="2">Next: kitchen model →</button></div>
+</section>
+
+<!-- ================= STEP 2 ================= -->
+<section class="step" data-step="2">
+  <h2>Kitchen model</h2>
+  <p class="lead">Pick the door and cabinet colour, then drop in the Winner Flex IFC export.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Doors</h3>
+    <div class="pickers">
+      <select id="supplierSelect"><option value="">Supplier…</option></select>
+      <select id="doorTypeSelect" disabled><option value="">Door type…</option></select>
+      <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
+      <select id="colourSelect" disabled><option value="">Colour…</option></select>
+    </div>
+    <div class="grid" style="margin-top:14px;">
+      <div class="full"><label>Price door fronts from</label><select id="priceRangeSelect"><option value="">Choose a supplier first…</option></select>
+        <div class="hint">The price list range used for every door and drawer front. Picked for you when it can match the door. Check it's right.</div>
+        <div class="hint" id="priceHint" style="color:var(--warn); font-weight:600;"></div></div>
+      <div><label>Door name on quote</label><input type="text" id="doorName" placeholder="e.g. Buckingham - Indigo Ash"></div>
+      <div><label>Door photo (optional)</label><input type="file" id="doorPhoto" accept="image/*" style="display:block;"></div>
+      <div class="full"><label>Door description on quote</label><textarea id="doorDesc" style="min-height:60px;"></textarea></div>
+    </div>
+
+    <h3>Cabinets</h3>
+    <div class="grid">
+      <div><label>Cabinet colour</label><input type="text" id="carcassName" list="decorList" value="Robson Oak"><datalist id="decorList"></datalist></div>
+      <div><label>Carcass price band</label><select id="carcassBand">
+        <option value="1">Band 1 – plain colours</option><option value="2" selected>Band 2 – woodgrains</option>
+        <option value="3">Band 3 – textured woodgrains</option><option value="4">Band 4 – grained / Casella</option></select>
+        <div class="hint">Filled in when the colour is on the carcass price list.</div></div>
+      <div class="full"><label>Cabinet colour description on quote</label><textarea id="carcassDesc" style="min-height:50px;">Pale oak wood effect carcass material. Our most popular choice for kitchens.</textarea></div>
+    </div>
   </div>
 
   <div class="dropzone" id="dropzone">
-    <span class="corner tl"></span><span class="corner tr"></span>
-    <span class="corner bl"></span><span class="corner br"></span>
-    <p class="dz-title">Drop your IFC export here</p>
-    <p class="dz-sub">or click to browse — expects a <code>.ifc</code> file exported from Winner Flex</p>
+    <p class="t">Drop the IFC export here</p>
+    <p class="hint">or click to browse. Takes a .ifc file from Winner Flex. The first upload of the day can take a minute while the tool wakes up.</p>
     <input type="file" id="fileInput" accept=".ifc">
   </div>
   <div class="status" id="status"></div>
 
-  <section class="results" id="results">
-    <div class="section-head">
-      <h2 class="display">Cabinets</h2>
-      <span class="count-pill" id="cabCount"></span>
-    </div>
-    <div id="cabinetGroups"></div>
+  <div id="modelResults" style="display:none;">
+    <h3>What's in the model</h3>
+    <div class="cards" id="modelCards"></div>
+    <div id="notCatalogued"></div>
+    <details style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600; color:var(--navy);">Show full list (cabinets, fronts, panels, appliances)</summary>
+      <div id="modelDetail" style="margin-top:12px;"></div>
+    </details>
+  </div>
 
-    <div class="section-head" style="margin-top:44px;">
-      <h2 class="display">Doors &amp; trim</h2>
-      <span class="count-pill" id="doorSelectionSummary"></span>
-    </div>
-    <div id="doorsTable"></div>
-    <div class="trim-grid" id="trimGrid"></div>
-    <table id="panelTable" style="margin-top:8px;">
-      <thead><tr><th>Code</th><th>Description</th><th>Height</th><th>Face width</th><th>Order size (OS Doors)</th></tr></thead>
-      <tbody id="panelTbody"></tbody>
-    </table>
+  <div class="nav"><button class="btn ghost" data-go="1">← Back</button><button class="btn copper" data-go="3">Next: accessories →</button></div>
+</section>
 
-    <div class="section-head" style="margin-top:44px;">
-      <h2 class="display">Appliances</h2>
-      <span class="count-pill" id="applCount"></span>
-    </div>
-    <table>
-      <thead><tr><th>Code</th><th>Description</th><th>W mm</th><th>D mm</th><th>H mm</th></tr></thead>
-      <tbody id="applTbody"></tbody>
-    </table>
+<!-- ================= STEP 3 ================= -->
+<section class="step" data-step="3">
+  <h2>Accessories &amp; extras</h2>
+  <p class="lead">Add drawers, pull-outs, sinks, taps and anything else. Then the worktop, appliances and fitting.</p>
 
-    <div class="toolbar">
-      <button class="dl" id="downloadCsv">Download CSV</button>
-      <button class="dl secondary" id="downloadJson">Download JSON</button>
+  <div class="two">
+    <div>
+      <h3 style="margin-top:0;">Catalogue</h3>
+      <input type="text" id="catSearch" placeholder="Search e.g. pot drawer, larder, bin…" style="margin-bottom:8px;">
+      <div class="catalogue" id="catalogue"></div>
+      <div class="hint">Starter list for now. The full storage, sink and tap catalogue gets added here later.</div>
     </div>
+    <div>
+      <h3 style="margin-top:0;">Custom item</h3>
+      <div class="card">
+        <label>Item name</label><input type="text" id="cuName" placeholder="e.g. Clearwater Elegance satin brass tap">
+        <label style="margin-top:10px;">Description</label><textarea id="cuDesc" style="min-height:60px;"></textarea>
+        <div class="grid" style="margin-top:10px;">
+          <div><label>Price each (ex VAT)</label><input type="number" id="cuPrice" step="0.01" min="0"></div>
+          <div><label>Qty</label><input type="number" id="cuQty" value="1" min="1"></div>
+        </div>
+        <button class="btn small" id="cuAdd" style="margin-top:12px;">Add to quote</button>
+      </div>
+    </div>
+  </div>
 
-    <div class="caveat">
-      <strong>Note on doors:</strong> Winner Flex exports each cabinet as a single merged unit, so individual doors aren't broken out separately — the "Doors" line is a placeholder until a cabinet-code lookup table is built to infer door count/size from the codes above.
-    </div>
-  </section>
+  <h3>Accessories on this quote</h3>
+  <table class="lines"><thead><tr><th>Item</th><th>Description</th><th class="num" style="width:70px;">Qty</th><th class="num" style="width:120px;">Each ex VAT</th><th class="num" style="width:100px;">Total</th><th style="width:30px;"></th></tr></thead>
+    <tbody id="accBody"></tbody></table>
+
+  <h3>Worktop</h3>
+  <div class="card grid">
+    <div><label>Worktop name</label><input type="text" id="wtName" placeholder="e.g. Calacatta Marble"></div>
+    <div><label>Price (ex VAT)</label><input type="number" id="wtPrice" step="0.01" min="0"></div>
+    <div class="full"><label>Description</label><textarea id="wtDesc" style="min-height:50px;"></textarea>
+      <div class="hint" id="wtHint"></div></div>
+    <div class="full"><label><input type="checkbox" id="wtSeparate" checked style="width:auto; margin-right:6px;">Show the worktop as its own section on the quote</label></div>
+  </div>
+
+  <h3>Appliances</h3>
+  <table class="lines"><thead><tr><th>Appliance</th><th>Description</th><th class="num" style="width:120px;">Price ex VAT</th><th style="width:30px;"></th></tr></thead>
+    <tbody id="apBody"></tbody></table>
+  <button class="btn small ghost" id="apAdd" style="margin-top:8px;">+ Add appliance</button>
+  <div class="hint" id="apHint"></div>
+
+  <h3>Fitting &amp; discount</h3>
+  <div class="card grid">
+    <div><label>Kitchen fitting (ex VAT)</label><input type="number" id="fitPrice" step="0.01" min="0"></div>
+    <div><label>Discount (ex VAT)</label><input type="number" id="discount" step="0.01" min="0" value="0"></div>
+    <div class="full"><label>Fitting description</label><textarea id="fitDesc"></textarea></div>
+  </div>
+
+  <div class="nav"><button class="btn ghost" data-go="2">← Back</button><button class="btn copper" data-go="4">Next: quote →</button></div>
+</section>
+
+<!-- ================= STEP 4 ================= -->
+<section class="step" data-step="4">
+  <h2>Quote</h2>
+  <p class="lead">Check the price breakdown, then print the customer quote or the order lists.</p>
+
+  <div class="cards" id="sumCards"></div>
+  <div id="pricingWarn"></div>
+
+  <details id="breakdownWrap"><summary style="cursor:pointer; font-weight:600; color:var(--navy); margin:6px 0;">Staff price breakdown (not shown to the customer)</summary>
+    <table style="margin-top:10px;"><thead><tr><th>Section</th><th>Item</th><th class="num">Qty</th><th class="num">Cost each</th><th class="num">Sell each</th><th class="num">Sell total</th></tr></thead>
+      <tbody id="breakdownBody"></tbody></table>
+  </details>
+
+  <div class="toolbar">
+    <button class="btn copper" id="printQuoteBtn">Print / save customer quote (PDF)</button>
+    <button class="btn" id="printOrdersBtn">Print order lists</button>
+    <button class="btn ghost" id="csvBtn">Download order CSV</button>
+  </div>
+  <div class="hint" style="margin-bottom:12px;">In the print window, choose "Save as PDF" as the printer to get a PDF file.</div>
+
+  <div class="doc" id="quotePreview"></div>
+  <div class="nav"><button class="btn ghost" data-go="3">← Back</button><span></span></div>
+</section>
 </main>
 
+<div id="printQuote"></div>
+<div id="printOrders"></div>
+
 <script>
-  // Point this at your deployed backend if serving the frontend separately.
-  // When the backend serves this file itself (see README), a relative path works.
-  const API_URL = window.ALPINE_API_URL || '/api/parse';
-  const API_BASE = API_URL.replace(/\/api\/parse$/, '');
+const API_URL = window.HOK_API_URL || '/api/parse';
+const API = API_URL.replace(/\/api\/parse$/, '');
+const VAT = 0.135;
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+const eur = n => '€' + (Number(n) || 0).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const statusEl = document.getElementById('status');
-  const results = document.getElementById('results');
-  const trimGrid = document.getElementById('trimGrid');
-  const cabinetGroups = document.getElementById('cabinetGroups');
-  const cabCount = document.getElementById('cabCount');
-  const panelTbody = document.getElementById('panelTbody');
-  const doorsTable = document.getElementById('doorsTable');
-  const applTbody = document.getElementById('applTbody');
-  const applCount = document.getElementById('applCount');
-  const doorSelectionSummary = document.getElementById('doorSelectionSummary');
+const DEFAULT_MEMO = `Your Dream Kitchen Awaits
+Thank you for choosing House of Kitchens. We're committed to delivering a kitchen you'll love and want to spend every day in. Our expert team works with quality materials and precision craftsmanship to create kitchens that are built to last, backed by our 10-year warranty. We understand that your kitchen is one of the most important spaces in your home—it's where memories are made, meals are shared, and family gathers. That's why we take pride in exceeding expectations at every stage, from initial design through to expert installation, ensuring your new kitchen becomes the true heart of your home.
 
-  const supplierSelect = document.getElementById('supplierSelect');
-  const doorTypeSelect = document.getElementById('doorTypeSelect');
-  const rangeSelect = document.getElementById('rangeSelect');
-  const colourSelect = document.getElementById('colourSelect');
+Our approach is tailored to your needs, your space, and your vision. We listen carefully to what you want, we measure precisely, and we deliver with skill and attention to detail. Quality isn't compromised—it's guaranteed. Every installation reflects our commitment to creating kitchens that stand the test of time, both in durability and in style.
+Below is your personalised proposal, designed specifically to bring your vision to life and transform your kitchen into a space you'll treasure for years to come.`;
 
-  let lastResult = null;
-  let lastFilename = 'kitchen';
+const DEFAULT_FIT = `Our team will install the complete new kitchen suite, including all base and wall cabinetry, worktops, and integrated appliances positioned according to your approved design. We'll ensure precise fitting, level installation, and secure fixing of all components to industry standards. Note that plumbing and electrical connections are not included in this service and should be arranged separately with a qualified tradesperson.`;
 
-  // --- Door style / colour picker ---
-  async function fillSelect(select, options, placeholder) {
-    select.innerHTML = `<option value="">${placeholder}</option>` +
-      options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
-    select.disabled = options.length === 0;
+// ------------------------------------------------------------- state
+let S = freshState();
+function freshState(){
+  return {
+    customer:{name:'', title:'Kitchen', address:'', eircode:'', phone:'', email:'', proposal:nextProposal(), date:new Date().toISOString().slice(0,10), memo:DEFAULT_MEMO},
+    doors:{supplier:'', doorType:'', range:'', colour:'', priceRange:'', name:'', desc:'', photo:null},
+    carcass:{name:'Robson Oak', band:'2', desc:'Pale oak wood effect carcass material. Our most popular choice for kitchens.'},
+    result:null, filename:'', pricing:null, overrides:{},
+    accessories:[], worktop:{name:'', desc:'', price:'', separate:true},
+    appliances:[], fitting:{price:'', desc:DEFAULT_FIT}, discount:0,
+  };
+}
+function nextProposal(){
+  try { const n = parseInt(localStorage.getItem('hok_last_proposal') || '10072', 10); return 'ES-' + (n + 1); }
+  catch(e){ return 'ES-'; }
+}
+function save(){ try { localStorage.setItem('hok_quote_draft', JSON.stringify(S)); } catch(e){} updateTop(); }
+function load(){ try { const d = localStorage.getItem('hok_quote_draft'); if (d) S = Object.assign(freshState(), JSON.parse(d)); } catch(e){} }
+function updateTop(){ $('topJob').textContent = [S.customer.proposal, S.customer.name, S.customer.title].filter(Boolean).join(' · ') || 'New quote'; }
+
+// ------------------------------------------------------------- steps
+let current = 1;
+function go(n){
+  current = n;
+  document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', +s.dataset.step === n));
+  document.querySelectorAll('#steps button').forEach(b => {
+    b.classList.toggle('active', +b.dataset.step === n);
+    b.classList.toggle('done', +b.dataset.step < n);
+  });
+  if (n === 3) renderStep3();
+  if (n === 4) buildQuote();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.step));
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
+
+// ------------------------------------------------------------- step 1
+function bindCustomer(){
+  document.querySelectorAll('[data-c]').forEach(el => {
+    el.value = S.customer[el.dataset.c] ?? '';
+    el.oninput = () => { S.customer[el.dataset.c] = el.value; save(); };
+  });
+}
+
+// ------------------------------------------------------------- step 2: pickers
+const supplierSelect = $('supplierSelect'), doorTypeSelect = $('doorTypeSelect'), rangeSelect = $('rangeSelect'), colourSelect = $('colourSelect');
+function fill(sel, opts, ph, val){
+  sel.innerHTML = `<option value="">${ph}</option>` + opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  sel.disabled = !opts.length;
+  if (val && opts.includes(val)) sel.value = val;
+}
+const getJSON = url => fetch(API + url).then(r => r.ok ? r.json() : []).catch(() => []);
+const q = encodeURIComponent;
+
+async function loadSuppliers(){
+  fill(supplierSelect, await getJSON('/api/catalogue/suppliers'), 'Supplier…', S.doors.supplier);
+  if (S.doors.supplier) { await loadTypes(true); }
+  await loadPriceRanges();
+}
+async function loadTypes(restore){
+  fill(doorTypeSelect, await getJSON(`/api/catalogue/door-types?supplier=${q(supplierSelect.value)}`), 'Door type…', restore ? S.doors.doorType : '');
+  if (restore && S.doors.doorType) await loadRanges(true);
+}
+async function loadRanges(restore){
+  const ranges = await getJSON(`/api/catalogue/ranges?supplier=${q(supplierSelect.value)}&door_type=${q(doorTypeSelect.value)}`);
+  fill(rangeSelect, ranges, 'Range…', restore ? S.doors.range : '');
+  rangeSelect.style.display = ranges.length ? '' : 'none';
+  const colours = await getJSON(`/api/catalogue/colours?supplier=${q(supplierSelect.value)}&door_type=${q(doorTypeSelect.value)}${rangeSelect.value ? '&door_range=' + q(rangeSelect.value) : ''}`);
+  fill(colourSelect, colours, 'Colour…', restore ? S.doors.colour : '');
+}
+supplierSelect.onchange = async () => {
+  S.doors.supplier = supplierSelect.value; S.doors.doorType = S.doors.range = S.doors.colour = '';
+  fill(doorTypeSelect, [], 'Door type…'); fill(colourSelect, [], 'Colour…'); rangeSelect.style.display = 'none';
+  if (supplierSelect.value) await loadTypes(false);
+  await loadPriceRanges(); save();
+};
+doorTypeSelect.onchange = async () => { S.doors.doorType = doorTypeSelect.value; S.doors.range = S.doors.colour = ''; if (doorTypeSelect.value) await loadRanges(false); autoPriceRange(); save(); };
+rangeSelect.onchange = async () => { S.doors.range = rangeSelect.value; await loadRanges(true); autoPriceRange(); save(); };
+colourSelect.onchange = () => { S.doors.colour = colourSelect.value; autoPriceRange(); save(); };
+
+let priceRanges = [];
+async function loadPriceRanges(){
+  const sup = supplierSelect.value;
+  priceRanges = await getJSON('/api/pricing/ranges' + (sup ? `?supplier=${q(sup)}` : ''));
+  const sel = $('priceRangeSelect');
+  sel.innerHTML = '<option value="">Choose…</option>' + priceRanges.map(r =>
+    `<option value="${esc(r.key)}">${esc(r.name)}${sup ? '' : ' — ' + esc(r.supplier)}${r.group ? ' (' + esc(r.group) + ')' : ''}</option>`).join('');
+  if (S.doors.priceRange) sel.value = S.doors.priceRange;
+}
+function autoPriceRange(){
+  // Best match on the words of range + colour, e.g. Buckingham + Indigo Ash
+  const words = [rangeSelect.value, colourSelect.value, doorTypeSelect.value].join(' ').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2);
+  if (!words.length) return;
+  // The door range name has to be on the price list (e.g. "Buckingham"),
+  // otherwise a colour-only match would price the wrong door.
+  const styleWord = (rangeSelect.value || '').toLowerCase().split(/[^a-z0-9]+/).find(w => w.length > 2);
+  const pool = styleWord ? priceRanges.filter(r => r.name.toLowerCase().includes(styleWord)) : priceRanges;
+  $('priceHint').textContent = styleWord && !pool.length
+    ? `"${rangeSelect.value}" isn't on the price list. Pick the nearest door to price it from.` : '';
+  let best = null, bestScore = 0;
+  pool.forEach(r => {
+    const name = r.name.toLowerCase();
+    const score = words.reduce((s, w) => s + (name.includes(w) ? w.length : 0), 0);
+    if (score > bestScore) { best = r; bestScore = score; }
+  });
+  if (best) { $('priceRangeSelect').value = best.key; S.doors.priceRange = best.key; }
+  else if (styleWord) { $('priceRangeSelect').value = ''; S.doors.priceRange = ''; }
+  if (!S.doors.name || S.doors._autoName) {
+    const nm = [rangeSelect.value || doorTypeSelect.value, colourSelect.value].filter(Boolean).join(' - ');
+    if (nm) { $('doorName').value = S.doors.name = nm; S.doors._autoName = true; }
   }
+  repriceIfReady();
+}
+$('priceRangeSelect').onchange = e => { S.doors.priceRange = e.target.value; save(); repriceIfReady(); };
+$('doorName').oninput = e => { S.doors.name = e.target.value; S.doors._autoName = false; save(); };
+$('doorDesc').oninput = e => { S.doors.desc = e.target.value; save(); };
+$('doorPhoto').onchange = e => readPhoto(e.target.files[0], url => { S.doors.photo = url; save(); });
+function readPhoto(file, cb){
+  if (!file) return;
+  const img = new Image(), fr = new FileReader();
+  fr.onload = () => { img.onload = () => {   // shrink so the draft stays small
+    const c = document.createElement('canvas'), k = Math.min(1, 400 / img.width);
+    c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    cb(c.toDataURL('image/jpeg', 0.8)); }; img.src = fr.result; };
+  fr.readAsDataURL(file);
+}
 
-  fetch(`${API_BASE}/api/catalogue/suppliers`).then(r => r.json()).then(suppliers => {
-    fillSelect(supplierSelect, suppliers, 'Supplier…');
-  }).catch(() => {});
+let decors = [];
+getJSON('/api/pricing/decors').then(d => { decors = d; $('decorList').innerHTML = d.map(x => `<option value="${esc(x.decor)}">`).join(''); });
+$('carcassName').oninput = e => {
+  S.carcass.name = e.target.value;
+  const m = decors.find(d => d.decor.toLowerCase() === e.target.value.trim().toLowerCase());
+  if (m) { $('carcassBand').value = String(m.band); S.carcass.band = String(m.band); }
+  save(); repriceIfReady();
+};
+$('carcassBand').onchange = e => { S.carcass.band = e.target.value; save(); repriceIfReady(); };
+$('carcassDesc').oninput = e => { S.carcass.desc = e.target.value; save(); };
 
-  supplierSelect.addEventListener('change', async () => {
-    doorTypeSelect.innerHTML = '<option value="">Door style…</option>';
-    doorTypeSelect.disabled = true;
-    rangeSelect.style.display = 'none';
-    colourSelect.innerHTML = '<option value="">Colour…</option>';
-    colourSelect.disabled = true;
-    if (!supplierSelect.value) return;
-    const types = await fetch(`${API_BASE}/api/catalogue/door-types?supplier=${encodeURIComponent(supplierSelect.value)}`).then(r => r.json());
-    fillSelect(doorTypeSelect, types, 'Door style…');
+// ------------------------------------------------------------- step 2: upload
+const dz = $('dropzone'), fileInput = $('fileInput'), statusEl = $('status');
+dz.onclick = () => fileInput.click();
+['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+dz.addEventListener('drop', e => e.dataTransfer.files.length && handleFile(e.dataTransfer.files[0]));
+fileInput.onchange = e => e.target.files.length && handleFile(e.target.files[0]);
+
+async function handleFile(file){
+  dz.classList.remove('error');
+  if (!file.name.toLowerCase().endsWith('.ifc')) { dz.classList.add('error'); setStatus('Please use a .ifc file exported from Winner Flex.', 'err'); return; }
+  setStatus(`Reading ${file.name}… (can take up to a minute)`, '');
+  const form = new FormData(); form.append('file', file);
+  const p = new URLSearchParams();
+  if (supplierSelect.value) p.set('supplier', supplierSelect.value);
+  if (doorTypeSelect.value) p.set('door_type', doorTypeSelect.value);
+  if (rangeSelect.value) p.set('door_range', rangeSelect.value);
+  try {
+    const res = await fetch(API_URL + (p.toString() ? '?' + p : ''), {method:'POST', body:form});
+    if (!res.ok) { const e = await res.json().catch(() => ({detail:res.statusText})); throw new Error(e.detail || 'Could not read the file'); }
+    S.result = await res.json(); S.filename = file.name.replace(/\.ifc$/i, ''); S.overrides = {};
+    await reprice();
+    renderModel();
+    setStatus(`Done: ${S.result.summary.cabinet_count} cabinets, ${S.result.summary.panel_count} panels, ${S.result.summary.appliance_count} appliances.`, 'ok');
+    save();
+  } catch (e) { dz.classList.add('error'); setStatus('Error: ' + e.message, 'err'); }
+}
+function setStatus(t, cls){ statusEl.textContent = t; statusEl.className = 'status ' + cls; }
+
+async function reprice(){
+  if (!S.result) return;
+  const res = await fetch(API + '/api/pricing/quote', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({result:S.result, price_range:S.doors.priceRange || null, carcass_band:S.carcass.band})});
+  S.pricing = res.ok ? await res.json() : null;
+  save();
+}
+let repriceTimer;
+function repriceIfReady(){ clearTimeout(repriceTimer); repriceTimer = setTimeout(async () => { if (S.result) { await reprice(); renderModel(); } }, 300); }
+
+function renderModel(){
+  const r = S.result; if (!r) return;
+  $('modelResults').style.display = '';
+  const dt = r.doors_and_trim, cab = r.cabinets;
+  const fronts = dt.doors.reduce((n, d) => n + d.fronts.reduce((m, f) => m + f.qty, 0), 0);
+  const trim = dt.trim_cutting || {};
+  const card = (k, v, s) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`;
+  $('modelCards').innerHTML =
+    card('Cabinets', r.summary.cabinet_count, `${cab.base.length} base · ${cab.wall.length} wall · ${cab.tall.length} tall`) +
+    card('Fronts', fronts, 'doors & drawer fronts') +
+    card('Panels', r.summary.panel_count, 'end panels') +
+    ['Kickboard','Cornice','Light pelmet'].filter(k => trim[k]).map(k => card(k, trim[k].lengths_required + ' × 3m', (trim[k].total_length_mm/1000).toFixed(2) + 'm')).join('') +
+    (dt.worktop_area_m2 != null ? card('Worktop', (dt.worktop_cutting ? dt.worktop_cutting.lengths_required : '–') + ' × 4.05m', dt.worktop_area_m2.toFixed(2) + 'm²') : '') +
+    card('Appliances', r.summary.appliance_count, 'in the model');
+
+  $('notCatalogued').innerHTML = dt.doors_not_catalogued && dt.doors_not_catalogued.length
+    ? `<div class="warnbox"><strong>Fronts not worked out for:</strong> ${dt.doors_not_catalogued.map(esc).join(', ')}. These cabinets have no door sizes yet, so add their fronts as custom items in step 3.</div>` : '';
+
+  const row = c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td></tr>`;
+  let h = '';
+  [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
+    if (!cab[k].length) return;
+    h += `<h3>${l} cabinets (${cab[k].length})</h3><table><thead><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th></tr></thead><tbody>${cab[k].map(row).join('')}</tbody></table>`;
   });
+  h += `<h3>Fronts</h3><table><thead><tr><th>Cabinet</th><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>Size</th></tr></thead><tbody>` +
+    dt.doors.map(d => d.fronts.map(f => `<tr><td class="code">${esc(d.cabinet_code)}</td><td>${esc(f.type.replace('_',' '))}</td><td class="num">${f.height_mm} × ${f.width_mm}</td><td class="num">${f.qty}</td><td>${f.standard_size === false ? '<span class="pill err">Made to measure</span>' : f.standard_size ? '<span class="pill ok">Standard</span>' : ''}</td></tr>`).join('')).join('') + `</tbody></table>`;
+  if (dt.panels.length) h += `<h3>Panels</h3><table><thead><tr><th>Code</th><th>Description</th><th class="num">H</th></tr></thead><tbody>${dt.panels.map(p => `<tr><td class="code">${esc(p.code)}</td><td>${esc(p.description)}</td><td class="num">${p.panel_order ? p.panel_order.actual_height_mm : p.height_mm}</td></tr>`).join('')}</tbody></table>`;
+  if (r.appliances.length) h += `<h3>Appliances in the model</h3><table><tbody>${r.appliances.map(a => `<tr><td class="code">${esc(a.code)}</td><td>${esc(a.description)}</td></tr>`).join('')}</tbody></table>`;
+  $('modelDetail').innerHTML = h;
+}
 
-  doorTypeSelect.addEventListener('change', async () => {
-    colourSelect.innerHTML = '<option value="">Colour…</option>';
-    colourSelect.disabled = true;
-    rangeSelect.innerHTML = '<option value="">Range…</option>';
-    rangeSelect.style.display = 'none';
-    if (!doorTypeSelect.value) return;
-    const ranges = await fetch(`${API_BASE}/api/catalogue/ranges?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}`).then(r => r.json());
-    // 5G Vinyl-style door types share one colour list across ranges, but a
-    // range still needs picking (it's the door face/profile, e.g. "Modern").
-    fillSelect(rangeSelect, ranges, 'Door style / range…');
-    rangeSelect.style.display = '';
-    // Try loading colours without a range first (works for shared-colour door types)
-    const colours = await fetch(`${API_BASE}/api/catalogue/colours?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}`).then(r => r.json());
-    if (colours.length) fillSelect(colourSelect, colours, 'Colour…');
+// ------------------------------------------------------------- step 3
+let storage = [];
+getJSON('/api/pricing/storage').then(d => { storage = d; renderCatalogue(); });
+function renderCatalogue(){
+  const term = $('catSearch').value.trim().toLowerCase();
+  const list = storage.filter(s => !term || s.name.toLowerCase().includes(term));
+  $('catalogue').innerHTML = list.map((s, i) => `<div class="row"><span class="nm">${esc(niceName(s.name))}</span><span class="pr">${eur(s.price)}</span><button class="btn small" data-add="${storage.indexOf(s)}">Add</button></div>`).join('')
+    || '<div class="row"><span class="nm" style="color:var(--dim);">Nothing matches.</span></div>';
+  $('catalogue').querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const s = storage[+b.dataset.add];
+    S.accessories.push({name:niceName(s.name), desc:'', qty:1, price:s.price}); save(); renderAcc();
   });
-
-  rangeSelect.addEventListener('change', async () => {
-    if (!rangeSelect.value) return;
-    const colours = await fetch(`${API_BASE}/api/catalogue/colours?supplier=${encodeURIComponent(supplierSelect.value)}&door_type=${encodeURIComponent(doorTypeSelect.value)}&door_range=${encodeURIComponent(rangeSelect.value)}`).then(r => r.json());
-    fillSelect(colourSelect, colours, 'Colour…');
+}
+function niceName(n){ return n === n.toUpperCase() ? n.toLowerCase().replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/mm\b/gi, 'mm') : n; }
+$('catSearch').oninput = renderCatalogue;
+$('cuAdd').onclick = () => {
+  if (!$('cuName').value.trim()) { $('cuName').focus(); return; }
+  S.accessories.push({name:$('cuName').value.trim(), desc:$('cuDesc').value.trim(), qty:Math.max(1, num($('cuQty').value)), price:num($('cuPrice').value)});
+  $('cuName').value = $('cuDesc').value = $('cuPrice').value = ''; $('cuQty').value = 1; save(); renderAcc();
+};
+function renderAcc(){
+  $('accBody').innerHTML = S.accessories.map((a, i) => `<tr>
+    <td><input type="text" data-a="${i}" data-f="name" value="${esc(a.name)}"></td>
+    <td><input type="text" data-a="${i}" data-f="desc" value="${esc(a.desc)}" placeholder="Shown on the quote"></td>
+    <td class="num"><input type="number" data-a="${i}" data-f="qty" value="${a.qty}" min="1" style="width:60px;"></td>
+    <td class="num"><input type="number" data-a="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;"></td>
+    <td class="num">${eur(num(a.price) * num(a.qty))}</td><td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
+    || '<tr><td colspan="6" style="color:var(--dim);">No accessories yet. Add from the catalogue or as a custom item.</td></tr>';
+  $('accBody').querySelectorAll('input').forEach(el => el.onchange = () => {
+    const a = S.accessories[+el.dataset.a]; a[el.dataset.f] = ['qty','price'].includes(el.dataset.f) ? num(el.value) : el.value; save(); renderAcc();
   });
+  $('accBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.accessories.splice(+b.dataset.del, 1); save(); renderAcc(); });
+}
+function renderAp(){
+  $('apBody').innerHTML = S.appliances.map((a, i) => `<tr>
+    <td><input type="text" data-p="${i}" data-f="name" value="${esc(a.name)}" placeholder="e.g. NordMende 60cm induction hob"></td>
+    <td><input type="text" data-p="${i}" data-f="desc" value="${esc(a.desc)}"></td>
+    <td class="num"><input type="number" data-p="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;"></td>
+    <td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
+    || '<tr><td colspan="4" style="color:var(--dim);">No appliances on this quote.</td></tr>';
+  $('apBody').querySelectorAll('input').forEach(el => el.onchange = () => { const a = S.appliances[+el.dataset.p]; a[el.dataset.f] = el.dataset.f === 'price' ? num(el.value) : el.value; save(); });
+  $('apBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.appliances.splice(+b.dataset.del, 1); save(); renderAp(); });
+}
+$('apAdd').onclick = () => { S.appliances.push({name:'', desc:'', price:''}); save(); renderAp(); };
+function renderStep3(){
+  renderAcc(); renderAp();
+  const wc = S.result && S.result.doors_and_trim.worktop_cutting;
+  $('wtHint').textContent = wc ? `From the model: ${S.result.doors_and_trim.worktop_area_m2.toFixed(2)}m², ${wc.lengths_required} × 4.05m lengths (${wc.board_lengths_mm.map(l => (l/1000).toFixed(2) + 'm').join(', ')}).` : '';
+  $('apHint').textContent = S.result && S.result.appliances.length ? 'In the model: ' + S.result.appliances.map(a => a.description).join(', ') : '';
+}
+[['wtName','worktop','name'],['wtDesc','worktop','desc'],['wtPrice','worktop','price'],['fitPrice','fitting','price'],['fitDesc','fitting','desc']].forEach(([id, o, k]) => {
+  $(id).oninput = e => { S[o][k] = e.target.value; save(); };
+});
+$('wtSeparate').onchange = e => { S.worktop.separate = e.target.checked; save(); };
+$('discount').oninput = e => { S.discount = num(e.target.value); save(); };
 
-  dropzone.addEventListener('click', () => fileInput.click());
-  ['dragenter','dragover'].forEach(evt =>
-    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(evt =>
-    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
-  dropzone.addEventListener('drop', e => {
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+// ------------------------------------------------------------- step 4: totals
+function modelLines(){
+  return (S.pricing ? S.pricing.lines : []).map((l, i) => {
+    const o = S.overrides[i];
+    const each = l.unit_sell != null ? l.unit_sell : (o != null && o !== '' ? num(o) : null);
+    return {...l, idx:i, each, total: each == null ? 0 : each * l.qty, missing: l.unit_sell == null};
   });
-  fileInput.addEventListener('change', e => {
-    if (e.target.files.length) handleFile(e.target.files[0]);
-  });
+}
+function totals(){
+  const lines = modelLines();
+  const model = lines.reduce((s, l) => s + l.total, 0);
+  const acc = S.accessories.reduce((s, a) => s + num(a.price) * num(a.qty), 0);
+  const fit = num(S.fitting.price), wt = num(S.worktop.price);
+  const ap = S.appliances.reduce((s, a) => s + num(a.price), 0);
+  const kitchen = model + acc + fit + (S.worktop.separate ? 0 : wt);
+  const subtotal = kitchen + (S.worktop.separate ? wt : 0) + ap;
+  const disc = num(S.discount);
+  const vat = Math.round((subtotal - disc) * VAT * 100) / 100;
+  const total = subtotal - disc + vat;
+  const cost = lines.reduce((s, l) => s + (l.unit_net || 0) * l.qty, 0);
+  return {lines, model, acc, fit, wt, ap, kitchen, subtotal, disc, vat, total, cost, missing: lines.filter(l => l.missing && l.each == null)};
+}
 
-  async function handleFile(file){
-    dropzone.classList.remove('error');
-    if (!file.name.toLowerCase().endsWith('.ifc')) {
-      dropzone.classList.add('error');
-      statusEl.textContent = 'Please upload a .ifc file exported from Winner Flex.';
-      statusEl.className = 'status err';
-      return;
-    }
-    lastFilename = file.name.replace(/\.ifc$/i,'');
-    statusEl.textContent = `Parsing ${file.name}…`;
-    statusEl.className = 'status';
+function buildQuote(){
+  const t = totals();
+  const card = (k, v, s) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`;
+  $('sumCards').innerHTML = card('Cabinets, doors & trim', eur(t.model), t.cost ? 'cost ' + eur(t.cost) : '') +
+    card('Accessories', eur(t.acc)) + card('Fitting', eur(t.fit)) + card('Worktop', eur(t.wt)) + card('Appliances', eur(t.ap)) +
+    card('Total inc. VAT', eur(t.total), 'VAT ' + eur(t.vat));
 
-    const form = new FormData();
-    form.append('file', file);
+  const warn = [];
+  if (!S.result) warn.push('No kitchen model uploaded yet (step 2).');
+  if (S.result && !S.doors.priceRange) warn.push('No door price range picked, so fronts, panels and trim are unpriced (step 2).');
+  if (t.missing.length) warn.push(`${t.missing.length} line(s) have no price. Open the staff breakdown below and type a price for each.`);
+  if (!S.fitting.price) warn.push('No fitting price entered (step 3).');
+  $('pricingWarn').innerHTML = warn.length ? `<div class="warnbox">${warn.map(esc).join('<br>')}</div>` : '';
+  if (t.missing.length) $('breakdownWrap').open = true;
 
-    const params = new URLSearchParams();
-    if (supplierSelect.value) params.set('supplier', supplierSelect.value);
-    if (doorTypeSelect.value) params.set('door_type', doorTypeSelect.value);
-    if (rangeSelect.value) params.set('door_range', rangeSelect.value);
-    const url = params.toString() ? `${API_URL}?${params}` : API_URL;
+  $('breakdownBody').innerHTML = t.lines.map(l => `<tr class="${l.missing ? 'unpriced' : ''}">
+    <td>${esc(l.section)}</td><td>${esc(l.name)}${l.detail ? `<div class="hint">${esc(l.detail)}</div>` : ''}${l.missing ? `<div class="hint" style="color:var(--err);">${esc(l.note || '')}</div>` : ''}</td>
+    <td class="num">${l.qty}</td><td class="num">${l.unit_net != null ? eur(l.unit_net) : '–'}</td>
+    <td class="num">${l.missing ? `<input type="number" step="0.01" data-ov="${l.idx}" value="${S.overrides[l.idx] ?? ''}" placeholder="sell €">` : eur(l.each)}</td>
+    <td class="num">${eur(l.total)}</td></tr>`).join('') +
+    S.accessories.map(a => `<tr><td>Accessories</td><td>${esc(a.name)}</td><td class="num">${a.qty}</td><td class="num">–</td><td class="num">${eur(a.price)}</td><td class="num">${eur(num(a.price) * num(a.qty))}</td></tr>`).join('') +
+    (t.fit ? `<tr><td>Fitting</td><td>Kitchen fitting</td><td class="num">1</td><td class="num">–</td><td class="num">${eur(t.fit)}</td><td class="num">${eur(t.fit)}</td></tr>` : '');
+  $('breakdownBody').querySelectorAll('[data-ov]').forEach(el => el.onchange = () => { S.overrides[el.dataset.ov] = el.value; save(); buildQuote(); });
 
-    try {
-      const res = await fetch(url, { method:'POST', body: form });
-      if (!res.ok) {
-        const err = await res.json().catch(()=>({detail:res.statusText}));
-        throw new Error(err.detail || 'Parse failed');
-      }
-      const data = await res.json();
-      lastResult = data;
-      render(data);
-      statusEl.textContent = `Parsed ${data.summary.cabinet_count} cabinets, ${data.summary.panel_count} panels, ${data.summary.appliance_count} appliances.`;
-      statusEl.className = 'status ok';
-    } catch (e) {
-      dropzone.classList.add('error');
-      statusEl.textContent = `Error: ${e.message}`;
-      statusEl.className = 'status err';
-    }
+  $('quotePreview').innerHTML = quoteHTML(t);
+}
+
+function itemHTML(name, desc, photo){
+  return `<tr class="item"><td colspan="2"><div class="itm"><div class="ph">${photo ? `<img src="${photo}" alt="">` : ''}</div>
+    <div><div class="nm">${esc(name)}</div>${desc ? `<div class="ds">${esc(desc)}</div>` : ''}</div></div></td></tr>`;
+}
+function fmtDate(d){ if (!d) return ''; const x = new Date(d + 'T00:00:00'); return x.toLocaleDateString('en-IE', {day:'numeric', month:'short', year:'numeric'}); }
+
+function quoteHTML(t){
+  const c = S.customer;
+  const title = [c.name, c.title].filter(Boolean).join(' - ');
+  const memo = (c.memo || '').split('\n');
+  const head = memo.length > 1 && memo[0].length < 60 ? `<strong>${esc(memo[0])}</strong>` + `<p>${esc(memo.slice(1).join('\n'))}</p>` : `<p>${esc(c.memo)}</p>`;
+
+  let rows = `<tr class="sec"><td>Kitchen Design</td><td>${eur(t.kitchen)}</td></tr>`;
+  if (S.doors.name) rows += itemHTML(S.doors.name, S.doors.desc, S.doors.photo);
+  if (S.carcass.name) rows += itemHTML(`${S.carcass.name} - Cabinet Colour`, S.carcass.desc);
+  if (!S.worktop.separate && S.worktop.name) rows += itemHTML(S.worktop.name, S.worktop.desc);
+  S.accessories.forEach(a => rows += itemHTML((num(a.qty) > 1 ? a.qty + ' × ' : '') + a.name, a.desc));
+  if (num(S.fitting.price)) rows += itemHTML('Kitchen Fitting', S.fitting.desc);
+  if (S.worktop.separate && (S.worktop.name || t.wt)) {
+    rows += `<tr class="sec"><td>Worktop</td><td>${eur(t.wt)}</td></tr>` + itemHTML(S.worktop.name || 'Worktop', S.worktop.desc);
   }
-
-  function render(data){
-    // --- Cabinets, grouped: Base / Wall / Tall ---
-    cabinetGroups.innerHTML = '';
-    const cabOrder = [['base','Base'],['wall','Wall'],['tall','Tall']];
-    let totalCabs = 0;
-    cabOrder.forEach(([key,label]) => {
-      const items = data.cabinets[key] || [];
-      totalCabs += items.length;
-      if (!items.length) return;
-      const wrap = document.createElement('div');
-      wrap.innerHTML = `<h3 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:18px 0 6px;color:var(--walnut);">${label} <span style="color:var(--text-dim);font-weight:400;">(${items.length})</span></h3>`;
-      const table = document.createElement('table');
-      table.innerHTML = `<thead><tr><th>Code</th><th>Description</th><th>W mm</th><th>D mm</th><th>H mm</th></tr></thead><tbody></tbody>`;
-      const tbody = table.querySelector('tbody');
-      items.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.depth_mm}</td><td class="num">${c.height_mm}</td>`;
-        tbody.appendChild(tr);
-      });
-      wrap.appendChild(table);
-      cabinetGroups.appendChild(wrap);
-    });
-    cabCount.textContent = `${totalCabs} items`;
-
-    // --- Doors & trim: cutting-stock cards + panels table ---
-    trimGrid.innerHTML = '';
-    const dt = data.doors_and_trim;
-
-    doorsTable.innerHTML = '';
-    const hasStockCheck = dt.doors.some(d => d.fronts.some(f => 'standard_size' in f));
-    doorSelectionSummary.textContent = supplierSelect.value && doorTypeSelect.value
-      ? `${supplierSelect.value} — ${doorTypeSelect.value}${rangeSelect.value ? ' — ' + rangeSelect.value : ''}`
-      : '';
-    if (dt.doors.length) {
-      const table = document.createElement('table');
-      const stockCol = hasStockCheck ? '<th>Stock</th>' : '';
-      table.innerHTML = `<thead><tr><th>Cabinet</th><th>Front type</th><th>W mm</th><th>H mm</th><th>Qty</th>${stockCol}</tr></thead><tbody></tbody>`;
-      const tbody = table.querySelector('tbody');
-      dt.doors.forEach(d => {
-        d.fronts.forEach((f, i) => {
-          const tr = document.createElement('tr');
-          let stockCell = '';
-          let wCell = `<td class="num">${f.width_mm}</td>`;
-          let hCell = `<td class="num">${f.height_mm}</td>`;
-          if (hasStockCheck) {
-            const isStd = f.standard_size;
-            if (isStd === false) {
-              // No catalogue match — let the size be confirmed by hand
-              // rather than just quoting the unresolved formula guess.
-              wCell = `<td><input type="number" class="mtm-input" data-field="width" value="${f.width_mm}" style="width:64px;"></td>`;
-              hCell = `<td><input type="number" class="mtm-input" data-field="height" value="${f.height_mm}" style="width:64px;"></td>`;
-              stockCell = `<td style="color:#B4544A;font-family:'JetBrains Mono',monospace;font-size:12px;">MTM — confirm size</td>`;
-            } else {
-              stockCell = `<td style="color:var(--ok);font-family:'JetBrains Mono',monospace;font-size:12px;">Standard</td>`;
-            }
-          }
-          tr.innerHTML = `<td class="code-cell">${i===0 ? escapeHtml(d.cabinet_code) : ''}</td><td>${f.type.replace('_',' ')}</td>${wCell}${hCell}<td class="num">${f.qty}</td>${stockCell}`;
-          tbody.appendChild(tr);
-        });
-      });
-      doorsTable.appendChild(table);
-    }
-    if (dt.doors_not_catalogued && dt.doors_not_catalogued.length) {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'margin-top:14px;';
-      wrap.innerHTML = `<p style="font-size:13px;color:var(--text-dim);margin:0 0 8px;">Not yet catalogued — specify the front size to include it:</p>`;
-      const table = document.createElement('table');
-      table.innerHTML = `<thead><tr><th>Cabinet</th><th>Type</th><th>W mm</th><th>H mm</th><th>Qty</th></tr></thead><tbody></tbody>`;
-      const tbody = table.querySelector('tbody');
-      dt.doors_not_catalogued.forEach(code => {
-        const tr = document.createElement('tr');
-        tr.dataset.manualCode = code;
-        tr.innerHTML = `
-          <td class="code-cell">${escapeHtml(code)}</td>
-          <td><select class="manual-input" data-field="type" style="font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px;">
-                <option value="door">door</option><option value="drawer_front">drawer front</option></select></td>
-          <td><input type="number" class="manual-input" data-field="width" placeholder="mm" style="width:64px;"></td>
-          <td><input type="number" class="manual-input" data-field="height" placeholder="mm" style="width:64px;"></td>
-          <td><input type="number" class="manual-input" data-field="qty" value="1" style="width:48px;"></td>`;
-        tbody.appendChild(tr);
-      });
-      wrap.appendChild(table);
-      doorsTable.appendChild(wrap);
-    }
-    ['Kickboard','Cornice','Light pelmet'].forEach(cat => {
-      const t = dt.trim_cutting[cat];
-      if (!t) return;
-      const card = document.createElement('div');
-      card.className = 'trim-card';
-      card.innerHTML = `
-        <span class="tick"></span>
-        <p class="cat">${cat}</p>
-        <p class="len">${t.lengths_required}<small> &times; 3m lengths</small></p>
-        <p class="pieces">${(t.total_length_mm/1000).toFixed(2)}m across ${t.pieces} piece${t.pieces===1?'':'s'}${cat==='Kickboard' && data.summary.corner_units ? ' (incl. corner filler)' : ''}</p>`;
-      trimGrid.appendChild(card);
-    });
-    if (dt.worktop_area_m2 != null) {
-      const wc = dt.worktop_cutting;
-      const card = document.createElement('div');
-      card.className = 'trim-card';
-      card.innerHTML = `
-        <span class="tick"></span>
-        <p class="cat">Worktop</p>
-        <p class="len">${wc ? wc.lengths_required : '—'}<small> &times; 4.05m lengths</small></p>
-        <p class="pieces">${dt.worktop_area_m2.toFixed(2)}m&sup2; true area${wc ? ' &middot; boards: ' + wc.board_lengths_mm.map(l=>(l/1000).toFixed(2)+'m').join(', ') : ''}</p>`;
-      trimGrid.appendChild(card);
-    }
-    panelTbody.innerHTML = '';
-    dt.panels.forEach(c => {
-      const po = c.panel_order;
-      const tr = document.createElement('tr');
-      let orderCell = '<span style="color:var(--text-dim);">not found</span>';
-      if (po) {
-        const opts = Object.entries(po.standard_options).filter(([,v]) => v);
-        if (opts.length) {
-          const [type, size] = opts[0];
-          orderCell = `${size[0]} &times; ${size[1]}mm <span style="color:var(--text-dim);font-size:11px;">(${escapeHtml(type)})</span>`;
-        } else {
-          orderCell = '<span style="color:#B4544A;">MTM required</span>';
-        }
-      }
-      tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${po ? po.actual_height_mm : c.height_mm}</td><td class="num">${po ? po.actual_face_width_mm + (po.is_tall_panel ? '*' : '') : ''}</td><td>${orderCell}</td>`;
-      panelTbody.appendChild(tr);
-    });
-    if (dt.panels.some(p => p.panel_order && p.panel_order.is_tall_panel)) {
-      const note = document.createElement('p');
-      note.style.cssText = 'font-size:12px;color:var(--text-dim);margin:6px 0 0;';
-      note.textContent = `* tall panel — face width assumed at 650mm to reach the worktop; confirm 650/700/750mm for this job.`;
-      panelTbody.parentElement.after(note);
-    }
-
-    // --- Appliances ---
-    applTbody.innerHTML = '';
-    data.appliances.forEach(c => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="code-cell">${escapeHtml(c.code)}</td><td>${escapeHtml(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.depth_mm}</td><td class="num">${c.height_mm}</td>`;
-      applTbody.appendChild(tr);
-    });
-    applCount.textContent = `${data.appliances.length} items`;
-
-    results.classList.add('show');
+  if (S.appliances.length) {
+    rows += `<tr class="sec"><td>Appliances</td><td>${eur(t.ap)}</td></tr>` + S.appliances.map(a => itemHTML(a.name, a.desc)).join('');
   }
+  const p = [0.5, 0.4, 0.1].map(f => Math.round(t.total * f * 100) / 100);
+  p[2] = Math.round((t.total - p[0] - p[1]) * 100) / 100;
 
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s ?? '';
-    return d.innerHTML;
-  }
+  return `
+  <div class="hdr"><div><h1>House of Kitchens</h1><div class="addr">House of Kitchens<br>Main Street, Stradbally, Co. Laois, R32P9PA<br>VAT Number: 4594091LH<br>Marcus Kenny<br>+353894895088</div></div>
+    <img src="logo.png" alt=""></div>
+  <div class="titlerow"><div class="t">${esc(title || 'Kitchen proposal')}</div><div style="text-align:right;"><div class="small-k">Date</div>${esc(fmtDate(c.date))}</div></div>
+  <div class="billto"><div><div class="k">Bill To</div>${esc(c.name)}<br>${[c.address, c.eircode].filter(Boolean).map(esc).join('<br>')}${c.email ? '<br>' + esc(c.email) : ''}${c.phone ? '<br>' + esc(c.phone) : ''}</div>
+    <div style="text-align:right;"><div class="k">Proposal</div>${esc(c.proposal)}</div></div>
+  <div class="memo"><div class="mk">Memo</div>${head}</div>
+  <table class="q"><thead><tr><th>Item</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="tot">
+    <div><span>Subtotal</span><span>${eur(t.subtotal)}</span></div>
+    ${t.disc ? `<div><span>Discount</span><span>-${eur(t.disc)}</span></div>` : ''}
+    <div><span>VAT Reduced Rate (13.5%)</span><span>${eur(t.vat)}</span></div>
+    <div class="big"><span>Total</span><span>${eur(t.total)}</span></div>
+  </div>
+  <div class="page-break"></div>
+  <h4 style="margin:30px 0 0; font-size:13px;">Payments</h4>
+  <div class="pay">
+    <div><div class="a">${eur(p[0])}</div>Deposit<br><span class="small-k">On acceptance</span></div>
+    <div><div class="a">${eur(p[1])}</div>Pre Installation<br><span class="small-k">Before installation starts</span></div>
+    <div><div class="a">${eur(p[2])}</div>Final Payment<br><span class="small-k">On completion</span></div>
+  </div>
+  <div class="terms">${TERMS}</div>
+  <div class="sign"><div>House of Kitchens<br>Company Signature</div><div>&nbsp;<br>Client Signature</div></div>`;
+}
 
-  document.getElementById('downloadJson').addEventListener('click', () => {
-    if (!lastResult) return;
-    downloadBlob(JSON.stringify(lastResult, null, 2), `${lastFilename}-breakdown.json`, 'application/json');
+const TERMS = `<h4 style="font-size:13px;">Terms and Conditions</h4>
+<h4>PAYMENT SCHEDULE</h4><ul><li>50% deposit due upon acceptance of quotation to confirm booking and order materials.</li><li>40% due prior to commencement of installation.</li><li>10% balance due upon completion and client approval.</li></ul>
+<p>Payments are accepted via bank transfer to the details provided on your invoice. Work will not begin, nor materials be ordered, until the deposit has been received.</p>
+<h4>QUOTATION VALIDITY</h4><p>All quotations are valid for 30 days from the date of issue. Prices may be subject to change thereafter depending on supplier costs or material availability.</p>
+<h4>SCOPE OF WORKS</h4><p>The quotation covers only the items and works specifically listed. Any alterations, additions, or omissions requested by the client after acceptance will be treated as variations and may affect cost and completion time. All variations must be confirmed in writing.</p>
+<h4>MATERIALS &amp; APPLIANCES</h4><p>All products and appliances are supplied as per the agreed specification. If an item becomes unavailable, a comparable alternative of equal quality will be offered.</p><p>House of Kitchens is not responsible for manufacturer faults or failures — warranty claims must be made directly with the manufacturer.</p>
+<h4>ACCESS &amp; SITE PREPARATION</h4><p>The client is responsible for ensuring access to the property and that the workspace is clear and ready on the agreed start date.</p><p>Electricity, water, and adequate parking must be available for the installation team.</p>
+<h4>DELAYS</h4><p>While every effort is made to complete works within the agreed timeframe, House of Kitchens cannot accept liability for delays caused by supplier shortages, client-requested changes, or unforeseen site conditions. Any such delays will be communicated promptly.</p>
+<h4>WASTE REMOVAL</h4><p>General packaging and small waste removal are not included unless otherwise stated. Waste disposal or skip hire can be arranged at an additional cost.</p>
+<h4>GUARANTEE &amp; WORKMANSHIP</h4><p>All installation work is guaranteed for 12 months from completion against defects in workmanship.</p><p>This guarantee excludes normal wear and tear, misuse, or damage caused after completion.</p>
+<h4>INSURANCE &amp; LIABILITY</h4><p>House of Kitchens carries full public liability insurance.</p><p>Liability is limited to the total contract value and excludes indirect, consequential, or third-party losses.</p><p>Clients are advised to maintain appropriate household insurance during works.</p>
+<h4>OWNERSHIP OF GOODS</h4><p>All materials supplied remain the property of House of Kitchens until full payment has been received.</p>
+<h4>ACCEPTANCE OF TERMS</h4><p>By signing this quotation or confirming acceptance in writing, the client agrees to the terms outlined above and authorises House of Kitchens to proceed with the works as detailed.</p>`;
+
+// ------------------------------------------------------------- order lists
+function ordersHTML(){
+  const r = S.result, c = S.customer;
+  const job = `<div class="hdr"><div><h1>Order lists</h1><div class="addr">${esc(c.proposal)} · ${esc(c.name)} · ${esc(c.title)}<br>${esc(fmtDate(c.date))}</div></div><img src="logo.png" alt=""></div>`;
+  if (!r) return job + '<p>No kitchen model uploaded.</p>';
+  const dt = r.doors_and_trim;
+  let h = job;
+  h += `<h2 class="ol">1. Cabinets</h2><p>Carcass colour: <strong>${esc(S.carcass.name)}</strong></p>`;
+  [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
+    if (!r.cabinets[k].length) return;
+    h += `<h4>${l}</h4><table class="ol"><thead><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th><th class="num">D</th></tr></thead><tbody>` +
+      r.cabinets[k].map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.description)}</td><td class="num">${x.width_mm}</td><td class="num">${x.height_mm}</td><td class="num">${x.depth_mm}</td></tr>`).join('') + '</tbody></table>';
   });
+  const rng = S.pricing && S.pricing.price_range;
+  h += `<h2 class="ol page-break">2. Fronts &amp; panels</h2><p>Door: <strong>${esc([S.doors.supplier, S.doors.doorType, S.doors.range, S.doors.colour].filter(Boolean).join(' · ') || rng || '—')}</strong></p>`;
+  const agg = {};
+  dt.doors.forEach(d => d.fronts.forEach(f => { const k = `${f.type}|${f.height_mm}|${f.width_mm}`; agg[k] = agg[k] || {f, qty:0, cabs:[]}; agg[k].qty += f.qty; agg[k].cabs.push(d.cabinet_code); }));
+  h += `<table class="ol"><thead><tr><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>For</th></tr></thead><tbody>` +
+    Object.values(agg).sort((a, b) => b.f.height_mm - a.f.height_mm || b.f.width_mm - a.f.width_mm)
+      .map(a => `<tr><td>${esc(a.f.type.replace('_',' '))}${a.f.standard_size === false ? ' (MTM)' : ''}</td><td class="num">${a.f.height_mm} × ${a.f.width_mm}</td><td class="num">${a.qty}</td><td>${esc(a.cabs.join(', '))}</td></tr>`).join('') + '</tbody></table>';
+  if (dt.panels.length) h += `<h4>Panels</h4><table class="ol"><tbody>` + dt.panels.map(p => {
+      const o = p.panel_order && Object.entries(p.panel_order.standard_options || {}).find(([, v]) => v);
+      return `<tr><td>${esc(p.code)}</td><td>${esc(p.description)}</td><td>${o ? `${o[1][0]} × ${o[1][1]} (${esc(o[0])})` : 'MTM'}</td></tr>`; }).join('') + '</tbody></table>';
+  h += `<h2 class="ol">3. Trim &amp; worktop</h2><table class="ol"><thead><tr><th>Item</th><th class="num">Lengths</th><th>Cut plan (mm)</th></tr></thead><tbody>` +
+    Object.entries(dt.trim_cutting || {}).map(([k, t]) => `<tr><td>${esc(k)}</td><td class="num">${t.lengths_required} × 3m</td><td>${t.cut_plan_mm.map(b => b.join(' + ')).join(' | ')}</td></tr>`).join('') +
+    (dt.worktop_cutting ? `<tr><td>Worktop${S.worktop.name ? ' – ' + esc(S.worktop.name) : ''}</td><td class="num">${dt.worktop_cutting.lengths_required} × 4.05m</td><td>${dt.worktop_cutting.cut_plan_mm.map(b => b.join(' + ')).join(' | ')}</td></tr>` : '') + '</tbody></table>';
+  if (S.accessories.length) h += `<h2 class="ol">4. Accessories</h2><table class="ol"><tbody>` + S.accessories.map(a => `<tr><td>${esc(a.name)}</td><td class="num">${a.qty}</td></tr>`).join('') + '</tbody></table>';
+  if (S.appliances.length) h += `<h2 class="ol">5. Appliances</h2><table class="ol"><tbody>` + S.appliances.map(a => `<tr><td>${esc(a.name)}</td></tr>`).join('') + '</tbody></table>';
+  return h;
+}
 
-  document.getElementById('downloadCsv').addEventListener('click', () => {
-    if (!lastResult) return;
-    let rows = [['Group','Code','Description','Width mm','Depth mm','Height mm']];
-    ['base','wall','tall'].forEach(g => {
-      lastResult.cabinets[g].forEach(c => rows.push([g[0].toUpperCase()+g.slice(1), c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
-    });
-    lastResult.doors_and_trim.panels.forEach(c => rows.push(['Panel', c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
-    lastResult.appliances.forEach(c => rows.push(['Appliance', c.code, c.description, c.width_mm, c.depth_mm, c.height_mm]));
+function doPrint(kind){
+  if (kind === 'quote') { $('printQuote').innerHTML = `<div class="doc">${quoteHTML(totals())}</div>`; }
+  else { $('printOrders').innerHTML = `<div class="doc">${ordersHTML()}</div>`; }
+  document.body.className = 'print-' + kind;
+  if (kind === 'quote') { try { const n = parseInt((S.customer.proposal || '').replace(/\D/g, ''), 10); if (n) localStorage.setItem('hok_last_proposal', String(Math.max(n, parseInt(localStorage.getItem('hok_last_proposal') || '0', 10)))); } catch(e){} }
+  const old = document.title;
+  document.title = kind === 'quote' ? `${S.customer.name || 'Customer'} - ${S.customer.title || 'Kitchen'}` : `Order lists - ${S.customer.proposal}`;
+  setTimeout(() => { window.print(); document.title = old; }, 150);
+}
+$('printQuoteBtn').onclick = () => doPrint('quote');
+$('printOrdersBtn').onclick = () => doPrint('orders');
+window.addEventListener('afterprint', () => { document.body.className = ''; });
 
-    // Doors/fronts — read straight from the table so any typed-in MTM
-    // sizes or manually-specified uncatalogued fronts are included,
-    // not just the original computed values.
-    rows.push([]);
-    rows.push(['Door/Front', 'Cabinet', 'Type', 'Width mm', 'Height mm', 'Qty', 'Source']);
-    let lastCabinet = '';
-    doorsTable.querySelectorAll('table tr').forEach(tr => {
-      if (tr.querySelector('th')) return; // header row
-      const isManual = 'manualCode' in tr.dataset;
-      let cabinet = isManual ? tr.dataset.manualCode : (tr.cells[0]?.textContent || '');
-      if (!isManual) {
-        cabinet = cabinet || lastCabinet;
-        lastCabinet = cabinet;
-      }
-      const type = isManual ? tr.querySelector('[data-field="type"]')?.value : tr.cells[1]?.textContent;
-      const wInput = tr.querySelector('[data-field="width"]');
-      const hInput = tr.querySelector('[data-field="height"]');
-      const width = wInput ? wInput.value : tr.cells[2]?.textContent;
-      const height = hInput ? hInput.value : tr.cells[3]?.textContent;
-      const qtyInput = tr.querySelector('[data-field="qty"]');
-      const qty = qtyInput ? qtyInput.value : tr.cells[4]?.textContent;
-      if (!width && !height) return; // skip empty manual rows nobody filled in
-      rows.push([cabinet, cabinet, type, width, height, qty, isManual ? 'manual' : 'engine']);
-    });
+$('csvBtn').onclick = () => {
+  if (!S.result) return;
+  const r = S.result, rows = [['Section','Code','Description','Qty / W','H','D']];
+  ['base','wall','tall'].forEach(g => r.cabinets[g].forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
+  r.doors_and_trim.doors.forEach(d => d.fronts.forEach(f => rows.push(['Front', d.cabinet_code, f.type, f.qty, f.height_mm, f.width_mm])));
+  r.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description, 1, p.height_mm, '']));
+  Object.entries(r.doors_and_trim.trim_cutting || {}).forEach(([k, t]) => rows.push(['Trim', k, '3m lengths', t.lengths_required, '', '']));
+  S.accessories.forEach(a => rows.push(['Accessory', '', a.name, a.qty, '', '']));
+  const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  download(csv, `${S.customer.proposal || 'quote'}-order.csv`, 'text/csv');
+};
+function download(content, name, type){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], {type})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
 
-    rows.push([]);
-    rows.push(['Material', 'Lengths required', 'Stock size', 'Cut plan']);
-    Object.entries(lastResult.doors_and_trim.trim_cutting).forEach(([cat,t]) => {
-      rows.push([cat, t.lengths_required, `${t.stock_length_mm}mm`, JSON.stringify(t.cut_plan_mm)]);
-    });
-    const wc = lastResult.doors_and_trim.worktop_cutting;
-    if (wc) rows.push(['Worktop', wc.lengths_required, `${wc.stock_length_mm}x${wc.stock_depth_mm}mm`, JSON.stringify(wc.cut_plan_mm)]);
-    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    downloadBlob(csv, `${lastFilename}-breakdown.csv`, 'text/csv');
-  });
+// ------------------------------------------------------------- drafts
+$('btnSaveDraft').onclick = () => download(JSON.stringify(S), `${S.customer.proposal || 'quote'} ${S.customer.name || ''}.json`.trim(), 'application/json');
+$('btnOpenDraft').onclick = () => $('draftFile').click();
+$('draftFile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => { S = Object.assign(freshState(), JSON.parse(t)); save(); hydrate(); go(1); }).catch(() => alert('That file isn\'t a saved quote.'));
+  e.target.value = '';
+};
+$('btnNew').onclick = () => { if (confirm('Start a new quote? Anything not saved as a draft will be cleared.')) { S = freshState(); save(); hydrate(); go(1); } };
 
-  function downloadBlob(content, filename, type){
-    const blob = new Blob([content], {type});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-  }
+function hydrate(){
+  bindCustomer();
+  $('doorName').value = S.doors.name || ''; $('doorDesc').value = S.doors.desc || '';
+  $('carcassName').value = S.carcass.name || ''; $('carcassBand').value = S.carcass.band || '2'; $('carcassDesc').value = S.carcass.desc || '';
+  $('wtName').value = S.worktop.name || ''; $('wtDesc').value = S.worktop.desc || ''; $('wtPrice').value = S.worktop.price || ''; $('wtSeparate').checked = S.worktop.separate !== false;
+  $('fitPrice').value = S.fitting.price || ''; $('fitDesc').value = S.fitting.desc || ''; $('discount').value = S.discount || 0;
+  loadSuppliers();
+  if (S.result) { renderModel(); setStatus(`Loaded: ${S.filename || 'model'} (${S.result.summary.cabinet_count} cabinets).`, 'ok'); }
+  else { $('modelResults').style.display = 'none'; setStatus('', ''); }
+  updateTop();
+}
+load(); hydrate();
 </script>
-
 </body>
 </html>
