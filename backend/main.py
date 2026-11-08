@@ -31,6 +31,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def no_cache_pages(request, call_next):
+    # Make browsers re-check the page on every visit, so an update
+    # shows up straight away instead of an old cached copy.
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.endswith(".html"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 SETTINGS = ifcopenshell.geom.settings()
 SETTINGS.set(SETTINGS.USE_WORLD_COORDS, True)
 SETTINGS.set(SETTINGS.WELD_VERTICES, True)  # merges duplicate vertices — notably cuts mesh memory

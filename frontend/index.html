@@ -14,7 +14,13 @@
     --ok:#4f7a5c; --err:#b4544a; --warn:#b07a2a;
   }
   *{box-sizing:border-box;}
-  body{margin:0; background:var(--paper); color:var(--text); font-family:'Montserrat',sans-serif; font-size:14px;}
+  html,body{height:100%;}
+  body{margin:0; background:var(--paper); color:var(--text); font-family:'Montserrat',sans-serif; font-size:14px;
+    display:flex; flex-direction:column; overflow:hidden;}
+  /* The tool scrolls inside its own panel, so it still scrolls when the
+     website it's embedded in has locked scrolling on the frame. */
+  .topbar,.steps{flex:none;}
+  #scroller{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   button,input,select,textarea{font-family:inherit; font-size:14px;}
 
   /* ---------- app chrome ---------- */
@@ -140,7 +146,8 @@
 
   @media print{
     @page{size:A4; margin:14mm;}
-    body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    html,body{height:auto;}
+    body{background:#fff; display:block; overflow:visible; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
     body > *{display:none !important;}
     body.print-quote #printQuote, body.print-orders #printOrders{display:block !important;}
     .doc{border:none; box-shadow:none; padding:0; max-width:none;}
@@ -169,6 +176,7 @@
   <button data-step="4"><span class="n">4</span>Quote</button>
 </nav>
 
+<div id="scroller">
 <main>
 <!-- ================= STEP 1 ================= -->
 <section class="step active" data-step="1">
@@ -320,6 +328,7 @@
   <div class="nav"><button class="btn ghost" data-go="3">← Back</button><span></span></div>
 </section>
 </main>
+</div>
 
 <div id="printQuote"></div>
 <div id="printOrders"></div>
@@ -372,7 +381,7 @@ function go(n){
   });
   if (n === 3) renderStep3();
   if (n === 4) buildQuote();
-  window.scrollTo(0,0);
+  $('scroller').scrollTop = 0;
 }
 document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.step));
 document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
