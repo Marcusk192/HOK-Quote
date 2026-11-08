@@ -11,7 +11,7 @@ import re
 import gc
 from collections import defaultdict
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,6 +20,7 @@ import ifcopenshell
 import ifcopenshell.geom
 
 import catalogue
+import pricing
 
 app = FastAPI(title="Alpine Edge Quoting Engine")
 
@@ -983,6 +984,26 @@ async def catalogue_ranges(supplier: str, door_type: str):
 @app.get("/api/catalogue/colours")
 async def catalogue_colours(supplier: str, door_type: str, door_range: str = None):
     return catalogue.list_colours(supplier, door_type, door_range)
+
+
+@app.get("/api/pricing/ranges")
+async def pricing_ranges(supplier: str = None):
+    return pricing.list_price_ranges(supplier)
+
+
+@app.get("/api/pricing/decors")
+async def pricing_decors():
+    return pricing.list_carcass_decors()
+
+
+@app.get("/api/pricing/storage")
+async def pricing_storage():
+    return pricing.list_storage()
+
+
+@app.post("/api/pricing/quote")
+async def pricing_quote(body: dict = Body(...)):
+    return pricing.price_job(body.get("result") or {}, body.get("price_range"), body.get("carcass_decor"), body.get("carcass_band"))
 
 
 @app.get("/api/health")
