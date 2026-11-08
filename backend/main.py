@@ -1017,6 +1017,44 @@ async def pricing_quote(body: dict = Body(...)):
     return pricing.price_job(body.get("result") or {}, body.get("price_range"), body.get("carcass_decor"), body.get("carcass_band"))
 
 
+# ---------------------------------------------------------------------------
+# Temporary relay used once to copy the Houzz Pro item library (details and
+# photos) into this repo. Houzz photo links expire after a day and can't be
+# downloaded from the browser directly, so they pass through here. Remove
+# once the library has been copied.
+RELAY_KEY = "cb53b63e1fad6ac9"
+_relay = {"items": []}
+
+
+@app.post("/api/relay")
+async def relay_put(key: str, body: list = Body(...)):
+    if key != RELAY_KEY:
+        raise HTTPException(403)
+    _relay["items"] = body
+    return {"stored": len(body)}
+
+
+@app.get("/api/relay")
+async def relay_get(key: str):
+    if key != RELAY_KEY:
+        raise HTTPException(403)
+    return _relay["items"]
+
+
+@app.get("/api/relay/img/{i}")
+async def relay_img(i: int, key: str):
+    import urllib.request
+    from fastapi.responses import Response
+    if key != RELAY_KEY or not (0 <= i < len(_relay["items"])):
+        raise HTTPException(404)
+    url = (_relay["items"][i] or {}).get("img") or ""
+    if not url.startswith("https://ivy-uploads.s3.us-west-2.amazonaws.com/"):
+        raise HTTPException(404)
+    with urllib.request.urlopen(url, timeout=30) as r:
+        data, ctype = r.read(), r.headers.get("Content-Type", "image/jpeg")
+    return Response(content=data, media_type=ctype)
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
