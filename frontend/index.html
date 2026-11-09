@@ -83,6 +83,7 @@
     <h2>Cabinets <span id="cabCount"></span></h2><div id="cabinets"></div>
     <h2>Fronts <span id="frontCount"></span></h2><div id="fronts"></div>
     <h2>Panels <span id="panelCount"></span></h2><div id="panels"></div>
+    <div id="kickWrap"><h2>Kickboard &amp; fillers <span id="kickCount"></span></h2><div id="kick"></div></div>
     <div id="splashWrap"><h2>Splashback <span id="splashCount"></span></h2><div id="splash"></div></div>
     <div class="toolbar">
       <button class="btn copper" id="printBtn">Print / save as PDF</button>
@@ -189,6 +190,15 @@ function render(){
     : '<p class="hint">No panels in the model.</p>';
   $('panelCount').textContent = dt.panels.length + ' panels';
 
+  const kb = (dt.trim_cutting || {}).Kickboard, fl = dt.fillers || [];
+  $('kickWrap').style.display = kb ? '' : 'none';
+  if (kb) {
+    $('kickCount').textContent = `${kb.lengths_required} × 3m lengths · ${(kb.total_length_mm/1000).toFixed(2)}m`;
+    $('kick').innerHTML = `<table><tr><th>Length</th><th>Cuts (mm)</th></tr>` +
+      kb.cut_plan_mm.map((c, i) => `<tr><td>Length ${i + 1}</td><td>${c.join(' + ')}</td></tr>`).join('') + '</table>' +
+      (fl.length ? `<p class="hint">Includes fillers cut from kickboard: ${fl.map(f => `${esc(f.code)} ${f.width_mm} wide × ${f.length_mm}`).join(', ')}.</p>` : '') +
+      (result.summary && result.summary.corner_units ? `<p class="hint">Includes ${result.summary.corner_units} × 1.5m corner filler allowance.</p>` : '');
+  }
   const sb = dt.splashbacks || [];
   $('splashWrap').style.display = sb.length ? '' : 'none';
   $('splash').innerHTML = `<table><tr><th>Code</th><th class="num">Width</th><th class="num">Height</th><th class="num">Thickness</th></tr>` +
@@ -206,6 +216,8 @@ $('csvBtn').onclick = () => {
   ['base','wall','tall'].forEach(g => (result.cabinets[g] || []).forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
   fronts().forEach(a => rows.push(['Front', a.f.type + (a.f.standard_size === false ? ' (MTM)' : ''), a.cabs.join(' '), a.f.width_mm, a.f.height_mm, a.qty]));
   result.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description + ' – order ' + panelOrder(p), '', p.height_mm, 1]));
+  (result.doors_and_trim.fillers || []).forEach(f => rows.push(['Filler (from kickboard)', f.code, f.description, f.width_mm, f.length_mm, 1]));
+  { const kb = (result.doors_and_trim.trim_cutting || {}).Kickboard; if (kb) rows.push(['Kickboard', '3m lengths', (kb.total_length_mm/1000).toFixed(2) + 'm total', '', '', kb.lengths_required]); }
   (result.doors_and_trim.splashbacks || []).forEach(x => rows.push(['Splashback', x.code, x.description, x.width_mm, x.height_mm, 1]));
   const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `${fileName}-order-list.csv`; document.body.appendChild(a); a.click(); a.remove();
