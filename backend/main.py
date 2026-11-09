@@ -413,6 +413,7 @@ def lookup_fronts(cabinet: dict):
 
 
 TRIM_STOCK_LENGTH_MM = 3000
+FILLER_MAX_WIDTH_MM = 150   # narrower "panels" are fillers, cut from kickboard
 SPLASHBACK_Z_MIN_MM = 850    # bottom edge at worktop height = splashback
 SPLASHBACK_Z_MAX_MM = 960
 L_CORNER_LEG_DEDUCTION_MM = 585   # L-shaped corner door = leg size - 585
@@ -960,6 +961,17 @@ def parse_ifc(path: str) -> dict:
         n = normalize_panel(cab)
         splashbacks.append({"code": cab["code"], "description": cab["description"],
                             "width_mm": n["face_width_mm"], "height_mm": n["height_mm"], "thickness_mm": n["thickness_mm"]})
+    # Fillers: anything modelled as a panel but under 150mm across the
+    # face is a filler strip, cut from kickboard stock (confirmed with
+    # Marcus), so its length goes onto the kickboard total.
+    fillers = []
+    for cab in [c for c in groups["Panel"] if normalize_panel(c)["face_width_mm"] < FILLER_MAX_WIDTH_MM]:
+        groups["Panel"].remove(cab)
+        n = normalize_panel(cab)
+        fillers.append({"code": cab["code"], "description": cab["description"],
+                        "width_mm": n["face_width_mm"], "length_mm": n["height_mm"]})
+    if fillers:
+        trim_cutting["Kickboard"] = summarize_cutting(kickboard_lengths + [f["length_mm"] for f in fillers])
     panels_with_order = [{**cab, "panel_order": suggest_panel_order(cab)} for cab in groups["Panel"]]
 
     return {
@@ -973,6 +985,7 @@ def parse_ifc(path: str) -> dict:
             "doors_not_catalogued": sorted(set(not_catalogued)),
             "panels": panels_with_order,
             "splashbacks": splashbacks,
+            "fillers": fillers,
             "splashback_area_m2": round(sum(x["width_mm"] * x["height_mm"] for x in splashbacks) / 1e6, 2),
             "trim_cutting": trim_cutting,
             "worktop_area_m2": worktop_area_m2,
