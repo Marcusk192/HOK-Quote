@@ -626,7 +626,8 @@ def classify_cabinet_group(cabinet: dict) -> str:
         return "Wall"
     if re.match(r"^W\d", code):
         return "Appliance"
-    if "end panel" in desc or "end support panel" in desc:
+    if "end panel" in desc or "end support panel" in desc or "sheet material" in desc:
+        # sheet material = panels/fillers cut from a full sheet (e.g. MSM 19/90)
         return "Panel"
     if cabinet["height_mm"] >= 1900:
         return "Tall"
@@ -662,6 +663,67 @@ def correct_width_depth(cab: dict) -> dict:
     if diff_d < diff_w and diff_d <= 8:
         cab["width_mm"], cab["depth_mm"] = cab["depth_mm"], cab["width_mm"]
     return cab
+
+
+def cabinet_dims_from_parts(verts, faces):
+    """
+    Winner exports each cabinet as one element made of separate parts:
+    the carcass box, the door/drawer front(s), the handle and so on.
+    The overall bounding box is misleading (the handle and doors add to
+    the depth, and a unit on a return wall has width and depth swapped).
+    Confirmed on a real job (Brian Skully): a 1000 short wall unit
+    resized to 950 x 450 on a return wall came back as 640 wide.
+
+    So: split the mesh into its connected parts, take the biggest part
+    as the carcass, and use the thin front board to tell which way the
+    unit faces. Width = carcass size across the front, depth = carcass
+    size front to back, height = carcass height. These are the sizes
+    as actually drawn, so resized units come out at their real size.
+    Returns None if the parts can't be told apart (falls back to the
+    plain bounding box).
+    """
+    n = len(verts) // 3
+    if n == 0:
+        return None
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for i in range(0, len(faces), 3):
+        a, b, c = faces[i], faces[i + 1], faces[i + 2]
+        ra = find(a)
+        for y in (b, c):
+            ry = find(y)
+            if ra != ry:
+                parent[ry] = ra
+    groups = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(i)
+    parts = []
+    for idx in groups.values():
+        xs = [verts[3 * i] for i in idx]
+        ys = [verts[3 * i + 1] for i in idx]
+        zs = [verts[3 * i + 2] for i in idx]
+        dx, dy, dz = max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)
+        parts.append((dx, dy, dz))
+    if len(parts) < 2:
+        return None
+    carcass = max(parts, key=lambda p: p[0] * p[1] * p[2])
+    fronts = [p for p in parts if p is not carcass and min(p[0], p[1]) <= 0.025
+              and max(p[0], p[1]) >= 0.1 and p[2] >= 0.05]
+    if not fronts:
+        return None
+    front = max(fronts, key=lambda p: max(p[0], p[1]) * p[2])
+    dx, dy, dz = carcass
+    if front[0] < front[1]:      # front board is thin in X -> unit faces along X
+        width, depth = dy, dx
+    else:
+        width, depth = dx, dy
+    return {"width_mm": round(width * 1000), "depth_mm": round(depth * 1000), "height_mm": round(dz * 1000)}
 
 
 # Preference order for the bulk-pass geometry kernel: lightest memory
@@ -762,13 +824,24 @@ def parse_ifc(path: str) -> dict:
                     b = bbox_from_verts(shape.geometry.verts)
                     el = f.by_id(shape.id)
                     if el.is_a("IfcFurnishingElement"):
-                        cab = correct_width_depth({
+                        cab = {
                             "code": el.Name or "",
                             "description": el.Description or "",
                             "width_mm": round(b["w"] * 1000),
                             "depth_mm": round(b["d"] * 1000),
                             "height_mm": round(b["h"] * 1000),
-                        })
+                        }
+                        parts = None
+                        if not is_corner_unit(cab) and "panel" not in cab["description"].lower() \
+                                and "sheet material" not in cab["description"].lower():
+                            try:
+                                parts = cabinet_dims_from_parts(shape.geometry.verts, shape.geometry.faces)
+                            except Exception:
+                                parts = None
+                        if parts:
+                            cab.update(parts)
+                        else:
+                            cab = correct_width_depth(cab)
                         cabinets.append(cab)
                         if is_corner_unit(cab):
                             corner_filler_count += 1
