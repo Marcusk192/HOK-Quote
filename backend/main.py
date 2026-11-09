@@ -396,10 +396,25 @@ def lookup_fronts(cabinet: dict):
     rule = CABINET_FRONT_LOOKUP.get(cabinet["code"])
     if rule:
         return rule(cabinet)
+    desc = cabinet["description"].lower()
+    # L-shaped corner base (e.g. BCSH 90/90): two doors, one per leg,
+    # each = leg size - 585 (confirmed with Marcus). The two legs can be
+    # different sizes, so both are taken from the drawn footprint.
+    if "'l' shaped" in desc or '"l" shaped' in desc or "l shaped" in desc:
+        h = cabinet["height_mm"] - FRONT_HEIGHT_REVEAL_MM
+        legs = sorted([cabinet["width_mm"], cabinet["depth_mm"]], reverse=True)
+        return [{"type": "door", "width_mm": leg - L_CORNER_LEG_DEDUCTION_MM, "height_mm": h, "qty": 1}
+                for leg in legs]
+    # Wardrobe-height tall units (2250 high) take one full-height door,
+    # not the larder split (confirmed with Marcus).
+    if cabinet["height_mm"] >= WARDROBE_HEIGHT_MM and not classify_appliance_housing(cabinet["description"]):
+        return [full_door(cabinet)]
     return generic_fronts(cabinet)
 
 
 TRIM_STOCK_LENGTH_MM = 3000
+L_CORNER_LEG_DEDUCTION_MM = 585   # L-shaped corner door = leg size - 585
+WARDROBE_HEIGHT_MM = 2240         # 2250 tall = wardrobe height -> one full door
 WORKTOP_STOCK_LENGTH_MM = 4050
 WORKTOP_STOCK_DEPTH_MM = 650
 
