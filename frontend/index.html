@@ -4,940 +4,194 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>House of Kitchens — Quoting Tool</title>
+<title>House of Kitchens — Model to Order List</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --navy:#1f2529; --navy-2:#2b3238; --copper:#c08a52; --copper-2:#d9a877;
-    --paper:#f6f4f0; --line:#ddd8cf; --line-2:#ece8e1; --text:#33383d; --dim:#7a7f84;
-    --ok:#4f7a5c; --err:#b4544a; --warn:#b07a2a;
-  }
+  :root{--navy:#1f2529; --copper:#c08a52; --paper:#f6f4f0; --line:#ddd8cf; --line-2:#ece8e1; --text:#33383d; --dim:#7a7f84; --ok:#4f7a5c; --err:#b4544a;}
   *{box-sizing:border-box;}
   html,body{height:100%;}
-  body{margin:0; background:var(--paper); color:var(--text); font-family:'Montserrat',sans-serif; font-size:14px;
-    display:flex; flex-direction:column; overflow:hidden;}
-  /* The tool scrolls inside its own panel, so it still scrolls when the
-     website it's embedded in has locked scrolling on the frame. */
-  .topbar,.steps{flex:none;}
-  #scroller{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;}
-  button,input,select,textarea{font-family:inherit; font-size:14px;}
-
-  /* ---------- app chrome ---------- */
-  .topbar{background:var(--navy); color:#fff; display:flex; align-items:center; gap:16px; padding:14px 24px;}
-  .topbar img{height:44px; width:44px; border-radius:4px;}
-  .topbar h1{font-size:17px; font-weight:600; margin:0; letter-spacing:.02em;}
-  .topbar .sub{font-size:12px; color:#aeb4b9;}
-  .topbar .spacer{flex:1;}
-  .topbar button{background:transparent; color:#fff; border:1px solid #4a535a; padding:7px 12px; border-radius:4px; cursor:pointer; font-size:12px;}
-  .topbar button:hover{border-color:var(--copper);}
-
-  .steps{display:flex; background:#fff; border-bottom:1px solid var(--line); padding:0 24px; overflow-x:auto;}
-  .steps button{background:none; border:none; border-bottom:3px solid transparent; padding:16px 18px 13px; cursor:pointer; color:var(--dim); font-weight:600; white-space:nowrap;}
-  .steps button .n{display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; background:var(--line-2); color:var(--dim); font-size:12px; margin-right:8px;}
-  .steps button.active{color:var(--navy); border-bottom-color:var(--copper);}
-  .steps button.active .n{background:var(--copper); color:#fff;}
-  .steps button.done .n{background:var(--ok); color:#fff;}
-
-  main{max-width:1040px; margin:0 auto; padding:28px 24px 100px;}
-  .step{display:none;} .step.active{display:block;}
-  h2{font-size:20px; margin:0 0 4px; color:var(--navy);}
-  .lead{color:var(--dim); margin:0 0 22px;}
-  h3{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--navy); margin:30px 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line);}
-  .card{background:#fff; border:1px solid var(--line); border-radius:6px; padding:20px;}
-
-  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px;}
-  .grid .full{grid-column:1/-1;}
-  label{display:block; font-size:12px; font-weight:600; color:var(--dim); margin-bottom:5px;}
-  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
-    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--text);}
-  textarea{min-height:90px; resize:vertical; line-height:1.5;}
-  input:focus,select:focus,textarea:focus{outline:none; border-color:var(--copper);}
-  .hint{font-size:12px; color:var(--dim); margin-top:4px;}
-
-  .nav{display:flex; justify-content:space-between; margin-top:28px;}
-  .btn{background:var(--navy); color:#fff; border:none; padding:11px 20px; border-radius:4px; cursor:pointer; font-weight:600;}
-  .btn:hover{background:var(--navy-2);}
-  .btn.copper{background:var(--copper);} .btn.copper:hover{background:#ad7944;}
-  .btn.ghost{background:transparent; color:var(--navy); border:1px solid var(--line);}
-  .btn.small{padding:6px 11px; font-size:12px;}
-  .btn:disabled{opacity:.45; cursor:not-allowed;}
-
-  /* ---------- step 2 ---------- */
+  body{margin:0; background:var(--paper); color:var(--text); font-family:'Montserrat',sans-serif; font-size:14px; display:flex; flex-direction:column; overflow:hidden;}
+  /* scrolls inside its own panel, so it still scrolls inside the locked Wix embed */
+  #scroller{flex:1; overflow-y:auto;}
+  .topbar{flex:none; background:var(--navy); color:#fff; display:flex; align-items:center; gap:14px; padding:12px 24px;}
+  .topbar img{height:40px; width:40px; border-radius:4px;}
+  .topbar h1{font-size:16px; margin:0; font-weight:600;}
+  main{max-width:1000px; margin:0 auto; padding:24px 24px 80px;}
+  h2{font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--navy); margin:30px 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;}
+  h2 span{color:var(--dim); font-weight:500; letter-spacing:0; text-transform:none;}
+  h3{font-size:13px; color:var(--copper); margin:16px 0 6px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:6px; padding:16px;}
   .pickers{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
-  .dropzone{position:relative; border:2px dashed var(--line); background:#fff; border-radius:6px; padding:44px 24px; text-align:center; cursor:pointer; margin-top:18px;}
-  .dropzone.drag{border-color:var(--copper); background:#fbf6f0;}
-  .dropzone.error{border-color:var(--err);}
-  .dropzone p{margin:0;} .dropzone .t{font-size:16px; font-weight:600; color:var(--navy); margin-bottom:6px;}
+  select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px; background:#fff; font-family:inherit; font-size:13px;}
+  select:disabled{background:var(--line-2); color:var(--dim);}
+  .hint{font-size:12px; color:var(--dim); margin-top:8px;}
+  .dropzone{border:2px dashed var(--line); background:#fff; border-radius:6px; padding:40px 24px; text-align:center; cursor:pointer; margin-top:16px;}
+  .dropzone.drag{border-color:var(--copper); background:#fbf6f0;} .dropzone.error{border-color:var(--err);}
+  .dropzone .t{font-size:16px; font-weight:600; color:var(--navy); margin:0 0 6px;}
   input[type=file]{display:none;}
-  .status{margin-top:12px; font-size:13px;} .status.err{color:var(--err);} .status.ok{color:var(--ok);}
-
+  .status{margin-top:10px; font-size:13px;} .status.ok{color:var(--ok);} .status.err{color:var(--err);}
   table{width:100%; border-collapse:collapse; background:#fff; font-size:13px;}
-  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); font-weight:600; padding:9px 10px; border-bottom:1px solid var(--line);}
-  td{padding:8px 10px; border-bottom:1px solid var(--line-2); vertical-align:top;}
-  td.num,th.num{text-align:right; white-space:nowrap;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line);}
+  td{padding:7px 10px; border-bottom:1px solid var(--line-2);}
+  .num{text-align:right; white-space:nowrap;}
   td.code{font-weight:600; color:var(--copper); white-space:nowrap;}
-  .pill{display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; background:var(--line-2); color:var(--dim);}
-  .pill.ok{background:#e4efe7; color:var(--ok);} .pill.err{background:#f6e3e1; color:var(--err);}
-  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin:6px 0 10px;}
-  .stat{background:#fff; border:1px solid var(--line); border-radius:6px; padding:14px;}
-  .stat .k{font-size:11px; text-transform:uppercase; color:var(--dim); letter-spacing:.05em;}
-  .stat .v{font-size:22px; font-weight:700; color:var(--navy); margin-top:4px;}
-  .stat .s{font-size:12px; color:var(--dim); margin-top:2px;}
-  .warnbox{background:#fbf3e6; border-left:3px solid var(--warn); padding:12px 14px; font-size:13px; margin:14px 0; border-radius:0 4px 4px 0;}
-
-  /* ---------- item library (Houzz-style) ---------- */
-  .picked{display:flex; gap:16px; align-items:center; background:#fff; border:1px solid var(--line); border-radius:6px; padding:12px; cursor:pointer;}
-  .picked:hover{border-color:var(--copper);}
-  .picked img,.picked .noimg{width:96px; height:96px; object-fit:cover; border-radius:4px; background:var(--line-2); flex:none;}
-  .picked .nm{font-weight:600; color:var(--navy);} .picked .ds{font-size:12px; color:var(--dim); margin-top:4px; max-height:3.2em; overflow:hidden;}
-  .picked .chg{margin-left:auto; flex:none;}
-  .lib-overlay{position:fixed; inset:0; background:rgba(20,24,28,.55); z-index:50; display:flex; align-items:stretch; justify-content:center; padding:24px;}
-  .lib-overlay[hidden]{display:none;}
-  .lib-panel{background:var(--paper); width:100%; max-width:1100px; border-radius:8px; display:flex; flex-direction:column; overflow:hidden;}
-  .lib-head{display:flex; gap:12px; align-items:center; padding:16px 20px; background:#fff; border-bottom:1px solid var(--line);}
-  .lib-head h2{margin:0; white-space:nowrap;} .lib-head input{flex:1;}
-  .lib-chips{display:flex; gap:8px; flex-wrap:wrap; padding:12px 20px; background:#fff; border-bottom:1px solid var(--line);}
-  .chip{border:1px solid var(--line); background:#fff; border-radius:16px; padding:6px 12px; cursor:pointer; font-size:12px; font-weight:600; color:var(--dim);}
-  .chip.on{background:var(--navy); border-color:var(--navy); color:#fff;}
-  .lib-grid{flex:1; overflow-y:auto; padding:18px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; align-content:start; grid-auto-rows:max-content;}
-  .tile{background:#fff; border:1px solid var(--line); border-radius:6px; overflow:hidden; display:flex; flex-direction:column; cursor:pointer; position:relative;}
-  .tile:hover{border-color:var(--copper); box-shadow:0 2px 10px rgba(0,0,0,.06);}
-  .tile.sel{border:2px solid var(--copper);}
-  .tile .ph{height:150px; flex:none; background:#fff; display:flex; align-items:center; justify-content:center; border-bottom:1px solid var(--line-2);}
-  .tile .ph img{width:100%; height:100%; object-fit:contain;}
-  .tile .bd{padding:10px; font-size:12.5px; flex:1; display:flex; flex-direction:column; gap:4px;}
-  .tile .nm{font-weight:600; color:var(--navy); line-height:1.3;}
-  .tile .pr{color:var(--dim); margin-top:auto;}
-  .tile .badge{position:absolute; top:8px; right:8px; background:var(--copper); color:#fff; font-size:11px; font-weight:700; border-radius:10px; padding:2px 8px;}
-  .thumb{width:44px; height:44px; object-fit:cover; border-radius:3px; background:var(--line-2); display:block;}
-
-  /* ---------- step 3 ---------- */
-  .two{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
-  .catalogue{max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:6px; background:#fff;}
-  .catalogue .row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line-2);}
-  .catalogue .row .nm{flex:1; font-size:13px;}
-  .catalogue .row .pr{font-size:13px; color:var(--dim); white-space:nowrap;}
-  .lines input{padding:6px 8px; font-size:13px;}
-  .lines td{vertical-align:middle;}
-  .x{background:none; border:none; color:var(--err); cursor:pointer; font-size:18px; line-height:1;}
-
-  /* ---------- step 4 ---------- */
-  .totals-bar{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px;}
-  .unpriced td{background:#fdf1ef;}
-  .unpriced input{width:90px;}
-  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin:18px 0;}
-
-  /* ---------- printed documents ---------- */
-  .doc{background:#fff; color:#2b2f33; width:100%; max-width:820px; margin:0 auto; padding:48px 52px; border:1px solid var(--line); box-shadow:0 2px 12px rgba(0,0,0,.05); font-size:12.5px;}
-  .doc .hdr{display:flex; justify-content:space-between; align-items:flex-start;}
-  .doc .hdr h1{font-size:26px; margin:0 0 6px; font-weight:700; color:#1f2529;}
-  .doc .hdr .addr{color:#5d6268; line-height:1.6;}
-  .doc .hdr img{width:92px; height:92px;}
-  .doc .titlerow{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d9d9d9; padding:22px 0 8px; margin-top:6px;}
-  .doc .titlerow .t{font-size:16px; font-weight:600;}
-  .doc .small-k{font-size:11px; color:#5d6268;}
-  .doc .billto{display:flex; justify-content:space-between; margin-top:20px; line-height:1.6;}
-  .doc .billto .k{font-size:15px; font-weight:600; color:#1f2529;}
-  .doc .memo{margin-top:26px; color:#3d4247; line-height:1.55;}
-  .doc .memo .mk{color:#7a7f84; margin-bottom:10px;}
-  .doc .memo p{margin:0 0 10px; white-space:pre-wrap;}
-  .doc .memo strong{display:block; margin-bottom:2px;}
-  .doc table.q{margin-top:22px; font-size:12.5px;}
-  .doc table.q th{font-size:12px; text-transform:none; letter-spacing:0; color:#7a7f84; font-weight:500; border-bottom:1px solid #e3e3e3; padding:10px 0;}
-  .doc table.q th:last-child{text-align:right;}
-  .doc tr.sec td{background:#f3f3f1; font-weight:600; font-size:13px; padding:12px 10px;}
-  .doc tr.sec td:last-child{text-align:right;}
-  .doc tr.item td{padding:12px 0 14px; border-bottom:1px solid #ececec;}
-  .doc .itm{display:flex; gap:18px;}
-  .doc .itm .ph:empty{display:none;}
-  .doc .itm .ph{width:96px; min-width:96px; height:72px; background:#f1efeb; border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center;}
-  .doc .itm .ph img{width:100%; height:100%; object-fit:cover;}
-  .doc .itm .nm{font-weight:600; margin-bottom:4px;}
-  .doc .itm .ds{color:#4a4f54; line-height:1.5; white-space:pre-wrap;}
-  .doc .tot{margin-left:auto; width:300px; margin-top:26px;}
-  .doc .tot div{display:flex; justify-content:space-between; padding:6px 0;}
-  .doc .tot .big{border-top:1px solid #ddd; margin-top:8px; padding-top:12px; font-weight:700; font-size:14px;}
-  .doc .pay{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:30px;}
-  .doc .pay > div{border:1px solid #e3e3e3; padding:12px; border-radius:3px;}
-  .doc .pay .a{font-weight:700; font-size:14px;}
-  .doc .terms{margin-top:30px; font-size:11.5px; line-height:1.55; color:#3d4247;}
-  .doc .terms h4{font-size:12px; margin:14px 0 4px;}
-  .doc .terms p,.doc .terms ul{margin:0 0 4px;}
-  .doc .sign{display:flex; justify-content:space-between; margin-top:50px;}
-  .doc .sign div{width:44%; border-top:1px solid #999; padding-top:6px; font-size:11px; color:#5d6268;}
-  .doc h2.ol{font-size:18px; margin:26px 0 8px; color:#1f2529; border-bottom:2px solid var(--copper); padding-bottom:6px;}
-  .doc table.ol th{color:#5d6268;}
-  .doc .page-break{page-break-before:always;}
-
+  .mtm{color:var(--err); font-weight:600; font-size:12px;}
+  .warn{background:#fbf3e6; border-left:3px solid #b07a2a; padding:10px 14px; font-size:13px; margin:12px 0;}
+  .toolbar{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+  .btn{background:var(--navy); color:#fff; border:none; padding:10px 18px; border-radius:4px; cursor:pointer; font-weight:600; font-family:inherit;}
+  .btn.copper{background:var(--copper);} .btn.ghost{background:#fff; color:var(--navy); border:1px solid var(--line);}
+  #results{display:none;}
+  .printhead{display:none;}
   @media print{
-    @page{size:A4; margin:14mm;}
-    html,body{height:auto;}
-    body{background:#fff; display:block; overflow:visible; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-    body > *{display:none !important;}
-    body.print-quote #printQuote, body.print-orders #printOrders{display:block !important;}
-    .doc{border:none; box-shadow:none; padding:0; max-width:none;}
-    .doc tr.item, .doc .itm{page-break-inside:avoid;}
+    @page{size:A4; margin:12mm;}
+    html,body{height:auto;} body{display:block; overflow:visible; background:#fff;}
+    #scroller{overflow:visible;}
+    .topbar,.setup,.toolbar,.status{display:none !important;}
+    .printhead{display:block; margin-bottom:6px;}
+    main{padding:0; max-width:none;}
+    h2{break-after:avoid;} tr{break-inside:avoid;}
   }
-  #printQuote,#printOrders{display:none;}
-  @media (max-width:760px){ .grid,.two{grid-template-columns:1fr;} .pickers{grid-template-columns:1fr 1fr;} .doc{padding:24px;} }
+  @media (max-width:700px){ .pickers{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
 <body>
+<div class="topbar"><img src="logo.png" alt=""><h1>Model to Order List</h1></div>
+<div id="scroller"><main>
 
-<div class="topbar">
-  <img src="logo.png" alt="House of Kitchens">
-  <div><h1>Quoting Tool</h1><div class="sub" id="topJob">New quote</div></div>
-  <div class="spacer"></div>
-  <button id="btnSaveDraft" title="Download this quote as a file you can open again">Save draft</button>
-  <button id="btnOpenDraft">Open draft</button>
-  <button id="btnNew">New quote</button>
-  <input type="file" id="draftFile" accept=".json">
-</div>
-
-<nav class="steps" id="steps">
-  <button data-step="1" class="active"><span class="n">1</span>Customer</button>
-  <button data-step="2"><span class="n">2</span>Kitchen model</button>
-  <button data-step="3"><span class="n">3</span>Accessories &amp; extras</button>
-  <button data-step="4"><span class="n">4</span>Quote</button>
-</nav>
-
-<div id="scroller">
-<main>
-<!-- ================= STEP 1 ================= -->
-<section class="step active" data-step="1">
-  <h2>Customer details</h2>
-  <p class="lead">Who the quote is for. This goes in the "Bill To" box on the quote.</p>
-  <div class="card grid">
-    <div><label>Customer name</label><input type="text" data-c="name" placeholder="e.g. Paddy Tuohy"></div>
-    <div><label>Job title on quote</label><input type="text" data-c="title" placeholder="e.g. Kitchen"></div>
-    <div class="full"><label>Address</label><input type="text" data-c="address" placeholder="Street, town, county"></div>
-    <div><label>Eircode</label><input type="text" data-c="eircode"></div>
-    <div><label>Phone</label><input type="tel" data-c="phone"></div>
-    <div><label>Email</label><input type="email" data-c="email"></div>
-    <div></div>
-    <div><label>Proposal number</label><input type="text" data-c="proposal" placeholder="ES-10073"></div>
-    <div><label>Date</label><input type="date" data-c="date"></div>
-    <div class="full"><label>Message to customer (top of the quote)</label><textarea data-c="memo" style="min-height:150px;"></textarea></div>
-  </div>
-  <div class="nav"><span></span><button class="btn copper" data-go="2">Next: kitchen model →</button></div>
-</section>
-
-<!-- ================= STEP 2 ================= -->
-<section class="step" data-step="2">
-  <h2>Kitchen model</h2>
-  <p class="lead">Pick the door and cabinet colour, then drop in the Winner Flex IFC export.</p>
-
-  <div class="card">
-    <h3 style="margin-top:0;">Door style</h3>
-    <div class="picked" id="doorPicked"></div>
-    <div class="grid" style="margin-top:14px;">
-      <div><label>Colour</label><select id="priceRangeSelect"><option value="">Pick a door style first…</option></select>
-        <div class="hint">Every door and drawer front is priced from this colour's price list.</div>
-        <div class="hint" id="priceHint" style="color:var(--warn); font-weight:600;"></div></div>
-      <div><label>Door name on quote</label><input type="text" id="doorName" placeholder="e.g. Buckingham - Indigo Ash"></div>
-      <div class="full"><label>Door description on quote</label><textarea id="doorDesc" style="min-height:60px;"></textarea></div>
-      <div class="full"><label>Own door photo (optional, replaces the library photo)</label><input type="file" id="doorPhoto" accept="image/*" style="display:block;"></div>
-    </div>
-    <details style="margin-top:12px;"><summary class="hint" style="cursor:pointer;">Supplier size check (optional)</summary>
-      <div class="pickers" style="margin-top:10px;">
-        <select id="supplierSelect"><option value="">Supplier…</option></select>
+  <div class="setup">
+    <div class="card">
+      <div class="pickers">
+        <select id="supplierSelect"><option value="">Door supplier (optional)…</option></select>
         <select id="doorTypeSelect" disabled><option value="">Door type…</option></select>
         <select id="rangeSelect" disabled style="display:none;"><option value="">Range…</option></select>
         <select id="colourSelect" disabled><option value="">Colour…</option></select>
       </div>
-      <div class="hint">Snaps each front to the supplier's standard sizes and marks made-to-measure ones. Pick before dropping in the model.</div>
-    </details>
-
-    <h3>Cabinets</h3>
-    <div class="picked" id="carcassPicked"></div>
-    <div class="grid" style="margin-top:14px;">
-      <div><label>Cabinet colour name on quote</label><input type="text" id="carcassName" list="decorList" value="Robson Oak"><datalist id="decorList"></datalist></div>
-      <div><label>Carcass price band</label><select id="carcassBand">
-        <option value="1">Band 1 – plain colours</option><option value="2" selected>Band 2 – woodgrains</option>
-        <option value="3">Band 3 – textured woodgrains</option><option value="4">Band 4 – grained / Casella</option></select>
-        <div class="hint">Filled in when the colour is on the carcass price list.</div></div>
-      <div class="full"><label>Cabinet colour description on quote</label><textarea id="carcassDesc" style="min-height:50px;">Pale oak wood effect carcass material. Our most popular choice for kitchens.</textarea></div>
+      <div class="hint">Optional. Pick the door before dropping in the model and each front is checked against that supplier's standard sizes. Anything that isn't standard is marked MTM.</div>
     </div>
-  </div>
-
-  <div class="dropzone" id="dropzone">
-    <p class="t">Drop the IFC export here</p>
-    <p class="hint">or click to browse. Takes a .ifc file from Winner Flex. The first upload of the day can take a minute while the tool wakes up.</p>
-    <input type="file" id="fileInput" accept=".ifc">
+    <div class="dropzone" id="dropzone">
+      <p class="t">Drop the Winner Flex IFC export here</p>
+      <p class="hint" style="margin:0;">or click to browse. The first one of the day can take up to a minute while the tool wakes up.</p>
+      <input type="file" id="fileInput" accept=".ifc">
+    </div>
   </div>
   <div class="status" id="status"></div>
 
-  <div id="modelResults" style="display:none;">
-    <h3>What's in the model</h3>
-    <div class="cards" id="modelCards"></div>
+  <div id="results">
+    <div class="printhead"><strong id="phJob"></strong></div>
     <div id="notCatalogued"></div>
-    <details style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600; color:var(--navy);">Show full list (cabinets, fronts, panels, appliances)</summary>
-      <div id="modelDetail" style="margin-top:12px;"></div>
-    </details>
-  </div>
-
-  <div class="nav"><button class="btn ghost" data-go="1">← Back</button><button class="btn copper" data-go="3">Next: accessories →</button></div>
-</section>
-
-<!-- ================= STEP 3 ================= -->
-<section class="step" data-step="3">
-  <h2>Accessories &amp; extras</h2>
-  <p class="lead">Add drawers, pull-outs, sinks, taps and anything else. Then the worktop, appliances and fitting.</p>
-
-  <div class="two">
-    <div>
-      <h3 style="margin-top:0;">From your item library</h3>
-      <div class="card" style="text-align:center; padding:28px 20px;">
-        <p style="margin:0 0 14px; color:var(--dim);">Drawers, pull-outs, bins, sinks, taps, handles and more, with photos.</p>
-        <button class="btn copper" id="accBrowse">Browse items</button>
-      </div>
-    </div>
-    <div>
-      <h3 style="margin-top:0;">Custom item</h3>
-      <div class="card">
-        <label>Item name</label><input type="text" id="cuName" placeholder="e.g. Clearwater Elegance satin brass tap">
-        <label style="margin-top:10px;">Description</label><textarea id="cuDesc" style="min-height:60px;"></textarea>
-        <div class="grid" style="margin-top:10px;">
-          <div><label>Price each (ex VAT)</label><input type="number" id="cuPrice" step="0.01" min="0"></div>
-          <div><label>Qty</label><input type="number" id="cuQty" value="1" min="1"></div>
-        </div>
-        <button class="btn small" id="cuAdd" style="margin-top:12px;">Add to quote</button>
-      </div>
+    <h2>Cabinets <span id="cabCount"></span></h2><div id="cabinets"></div>
+    <h2>Fronts <span id="frontCount"></span></h2><div id="fronts"></div>
+    <h2>Panels <span id="panelCount"></span></h2><div id="panels"></div>
+    <div class="toolbar">
+      <button class="btn copper" id="printBtn">Print / save as PDF</button>
+      <button class="btn ghost" id="csvBtn">Download CSV</button>
     </div>
   </div>
 
-  <h3>Accessories on this quote</h3>
-  <table class="lines"><thead><tr><th style="width:58px;"></th><th>Item</th><th>Description</th><th class="num" style="width:70px;">Qty</th><th class="num" style="width:120px;">Each ex VAT</th><th class="num" style="width:100px;">Total</th><th style="width:30px;"></th></tr></thead>
-    <tbody id="accBody"></tbody></table>
-
-  <h3>Worktop</h3>
-  <div class="picked" id="wtPicked" style="margin-bottom:10px;"></div>
-  <div class="card grid">
-    <div><label>Worktop name</label><input type="text" id="wtName" placeholder="e.g. Calacatta Marble"></div>
-    <div><label>Price (ex VAT)</label><input type="number" id="wtPrice" step="0.01" min="0"></div>
-    <div class="full"><label>Description</label><textarea id="wtDesc" style="min-height:50px;"></textarea>
-      <div class="hint" id="wtHint"></div></div>
-    <div class="full"><label><input type="checkbox" id="wtSeparate" checked style="width:auto; margin-right:6px;">Show the worktop as its own section on the quote</label></div>
-  </div>
-
-  <h3>Appliances</h3>
-  <table class="lines"><thead><tr><th style="width:58px;"></th><th>Appliance</th><th>Description</th><th class="num" style="width:120px;">Price ex VAT</th><th style="width:30px;"></th></tr></thead>
-    <tbody id="apBody"></tbody></table>
-  <button class="btn small copper" id="apBrowse" style="margin-top:8px;">Browse appliances</button>
-  <button class="btn small ghost" id="apAdd" style="margin-top:8px;">+ Type one in</button>
-  <div class="hint" id="apHint"></div>
-
-  <h3>Fitting &amp; discount</h3>
-  <div class="card grid">
-    <div><label>Kitchen fitting (ex VAT)</label><input type="number" id="fitPrice" step="0.01" min="0"></div>
-    <div><label>Discount (ex VAT)</label><input type="number" id="discount" step="0.01" min="0" value="0"></div>
-    <div class="full"><label>Fitting description</label><textarea id="fitDesc"></textarea></div>
-  </div>
-
-  <div class="nav"><button class="btn ghost" data-go="2">← Back</button><button class="btn copper" data-go="4">Next: quote →</button></div>
-</section>
-
-<!-- ================= STEP 4 ================= -->
-<section class="step" data-step="4">
-  <h2>Quote</h2>
-  <p class="lead">Check the price breakdown, then print the customer quote or the order lists.</p>
-
-  <div class="cards" id="sumCards"></div>
-  <div id="pricingWarn"></div>
-
-  <details id="breakdownWrap"><summary style="cursor:pointer; font-weight:600; color:var(--navy); margin:6px 0;">Staff price breakdown (not shown to the customer)</summary>
-    <table style="margin-top:10px;"><thead><tr><th>Section</th><th>Item</th><th class="num">Qty</th><th class="num">Cost each</th><th class="num">Sell each</th><th class="num">Sell total</th></tr></thead>
-      <tbody id="breakdownBody"></tbody></table>
-  </details>
-
-  <div class="toolbar">
-    <button class="btn copper" id="printQuoteBtn">Print / save customer quote (PDF)</button>
-    <button class="btn" id="printOrdersBtn">Print order lists</button>
-    <button class="btn ghost" id="csvBtn">Download order CSV</button>
-  </div>
-  <div class="hint" style="margin-bottom:12px;">In the print window, choose "Save as PDF" as the printer to get a PDF file.</div>
-
-  <div class="doc" id="quotePreview"></div>
-  <div class="nav"><button class="btn ghost" data-go="3">← Back</button><span></span></div>
-</section>
-</main>
-</div>
-
-<div class="lib-overlay" id="lib" hidden>
-  <div class="lib-panel">
-    <div class="lib-head">
-      <h2 id="libTitle">Items</h2>
-      <input type="text" id="libSearch" placeholder="Search…">
-      <button class="btn" id="libClose">Done</button>
-    </div>
-    <div class="lib-chips" id="libChips"></div>
-    <div class="lib-grid" id="libGrid"></div>
-  </div>
-</div>
-
-<div id="printQuote"></div>
-<div id="printOrders"></div>
+</main></div>
 
 <script>
 const API_URL = window.HOK_API_URL || '/api/parse';
 const API = API_URL.replace(/\/api\/parse$/, '');
-const VAT = 0.135;
 const $ = id => document.getElementById(id);
 const esc = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
-const eur = n => '€' + (Number(n) || 0).toLocaleString('en-IE', {minimumFractionDigits:2, maximumFractionDigits:2});
-const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
-
-const DEFAULT_MEMO = `Your Dream Kitchen Awaits
-Thank you for choosing House of Kitchens. We're committed to delivering a kitchen you'll love and want to spend every day in. Our expert team works with quality materials and precision craftsmanship to create kitchens that are built to last, backed by our 10-year warranty. We understand that your kitchen is one of the most important spaces in your home—it's where memories are made, meals are shared, and family gathers. That's why we take pride in exceeding expectations at every stage, from initial design through to expert installation, ensuring your new kitchen becomes the true heart of your home.
-
-Our approach is tailored to your needs, your space, and your vision. We listen carefully to what you want, we measure precisely, and we deliver with skill and attention to detail. Quality isn't compromised—it's guaranteed. Every installation reflects our commitment to creating kitchens that stand the test of time, both in durability and in style.
-Below is your personalised proposal, designed specifically to bring your vision to life and transform your kitchen into a space you'll treasure for years to come.`;
-
-const DEFAULT_FIT = `Our team will install the complete new kitchen suite, including all base and wall cabinetry, worktops, and integrated appliances positioned according to your approved design. We'll ensure precise fitting, level installation, and secure fixing of all components to industry standards. Note that plumbing and electrical connections are not included in this service and should be arranged separately with a qualified tradesperson.`;
-
-// ------------------------------------------------------------- state
-let S = freshState();
-function freshState(){
-  return {
-    customer:{name:'', title:'Kitchen', address:'', eircode:'', phone:'', email:'', proposal:nextProposal(), date:new Date().toISOString().slice(0,10), memo:DEFAULT_MEMO},
-    doors:{supplier:'', doorType:'', range:'', colour:'', priceRange:'', name:'', desc:'', photo:null, style:null},
-    carcass:{name:'Robson Oak', band:'2', desc:'Pale oak wood effect carcass material. Our most popular choice for kitchens.', photo:null},
-    result:null, filename:'', pricing:null, overrides:{},
-    accessories:[], worktop:{name:'', desc:'', price:'', separate:true, photo:null},
-    appliances:[], fitting:{price:'', desc:DEFAULT_FIT}, discount:0,
-  };
-}
-function nextProposal(){
-  try { const n = parseInt(localStorage.getItem('hok_last_proposal') || '10072', 10); return 'ES-' + (n + 1); }
-  catch(e){ return 'ES-'; }
-}
-function save(){ try { localStorage.setItem('hok_quote_draft', JSON.stringify(S)); } catch(e){} updateTop(); }
-function load(){ try { const d = localStorage.getItem('hok_quote_draft'); if (d) S = Object.assign(freshState(), JSON.parse(d)); } catch(e){} }
-function updateTop(){ $('topJob').textContent = [S.customer.proposal, S.customer.name, S.customer.title].filter(Boolean).join(' · ') || 'New quote'; }
-
-// ------------------------------------------------------------- steps
-let current = 1;
-function go(n){
-  current = n;
-  document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', +s.dataset.step === n));
-  document.querySelectorAll('#steps button').forEach(b => {
-    b.classList.toggle('active', +b.dataset.step === n);
-    b.classList.toggle('done', +b.dataset.step < n);
-  });
-  if (n === 3) renderStep3();
-  if (n === 4) buildQuote();
-  $('scroller').scrollTop = 0;
-}
-document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.step));
-document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
-
-// ------------------------------------------------------------- step 1
-function bindCustomer(){
-  document.querySelectorAll('[data-c]').forEach(el => {
-    el.value = S.customer[el.dataset.c] ?? '';
-    el.oninput = () => { S.customer[el.dataset.c] = el.value; save(); };
-  });
-}
-
-// ------------------------------------------------------------- step 2: pickers
-const supplierSelect = $('supplierSelect'), doorTypeSelect = $('doorTypeSelect'), rangeSelect = $('rangeSelect'), colourSelect = $('colourSelect');
-function fill(sel, opts, ph, val){
-  sel.innerHTML = `<option value="">${ph}</option>` + opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
-  sel.disabled = !opts.length;
-  if (val && opts.includes(val)) sel.value = val;
-}
-const getJSON = url => fetch(API + url).then(r => r.ok ? r.json() : []).catch(() => []);
 const q = encodeURIComponent;
+const getJSON = url => fetch(API + url).then(r => r.ok ? r.json() : []).catch(() => []);
+let result = null, fileName = '';
 
-async function loadSuppliers(){
-  fill(supplierSelect, await getJSON('/api/catalogue/suppliers'), 'Supplier…', S.doors.supplier);
-  if (S.doors.supplier) { await loadTypes(true); }
-}
-async function loadTypes(restore){
-  fill(doorTypeSelect, await getJSON(`/api/catalogue/door-types?supplier=${q(supplierSelect.value)}`), 'Door type…', restore ? S.doors.doorType : '');
-  if (restore && S.doors.doorType) await loadRanges(true);
-}
-async function loadRanges(restore){
-  const ranges = await getJSON(`/api/catalogue/ranges?supplier=${q(supplierSelect.value)}&door_type=${q(doorTypeSelect.value)}`);
-  fill(rangeSelect, ranges, 'Range…', restore ? S.doors.range : '');
-  rangeSelect.style.display = ranges.length ? '' : 'none';
-  const colours = await getJSON(`/api/catalogue/colours?supplier=${q(supplierSelect.value)}&door_type=${q(doorTypeSelect.value)}${rangeSelect.value ? '&door_range=' + q(rangeSelect.value) : ''}`);
-  fill(colourSelect, colours, 'Colour…', restore ? S.doors.colour : '');
-}
-supplierSelect.onchange = async () => {
-  S.doors.supplier = supplierSelect.value; S.doors.doorType = S.doors.range = S.doors.colour = '';
-  fill(doorTypeSelect, [], 'Door type…'); fill(colourSelect, [], 'Colour…'); rangeSelect.style.display = 'none';
-  if (supplierSelect.value) await loadTypes(false);
-  save();
-};
-doorTypeSelect.onchange = async () => { S.doors.doorType = doorTypeSelect.value; S.doors.range = S.doors.colour = ''; if (doorTypeSelect.value) await loadRanges(false); save(); };
-rangeSelect.onchange = async () => { S.doors.range = rangeSelect.value; await loadRanges(true); save(); };
-colourSelect.onchange = () => { S.doors.colour = colourSelect.value; save(); };
+// ---------------- door picker (for the standard-size check)
+const sup = $('supplierSelect'), typ = $('doorTypeSelect'), rng = $('rangeSelect'), col = $('colourSelect');
+function fill(sel, opts, ph){ sel.innerHTML = `<option value="">${ph}</option>` + opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join(''); sel.disabled = !opts.length; }
+getJSON('/api/catalogue/suppliers').then(s => fill(sup, s, 'Door supplier (optional)…'));
+sup.onchange = async () => { fill(typ, [], 'Door type…'); fill(col, [], 'Colour…'); rng.style.display = 'none';
+  if (sup.value) fill(typ, await getJSON(`/api/catalogue/door-types?supplier=${q(sup.value)}`), 'Door type…'); };
+typ.onchange = async () => { fill(col, [], 'Colour…'); if (!typ.value) return;
+  const ranges = await getJSON(`/api/catalogue/ranges?supplier=${q(sup.value)}&door_type=${q(typ.value)}`);
+  fill(rng, ranges, 'Range…'); rng.style.display = ranges.length ? '' : 'none';
+  fill(col, await getJSON(`/api/catalogue/colours?supplier=${q(sup.value)}&door_type=${q(typ.value)}`), 'Colour…'); };
+rng.onchange = async () => { if (rng.value) fill(col, await getJSON(`/api/catalogue/colours?supplier=${q(sup.value)}&door_type=${q(typ.value)}&door_range=${q(rng.value)}`), 'Colour…'); };
 
-let allRanges = null;
-const STYLE_SUPPLIER = {'OS Doors':'OS Doors', 'Trade Mouldings':'Trade Mouldings', 'Age-tek Doors':'Agetek', 'Agetek':'Agetek'};
-async function loadPriceRanges(){
-  // Colours on offer = the price list ranges for the picked door style,
-  // e.g. "Buckingham" -> Buckingham Indigo Ash, Buckingham Dove Grey Ash…
-  if (!allRanges) allRanges = await getJSON('/api/pricing/ranges');
-  const st = S.doors.style, sel = $('priceRangeSelect');
-  if (!st) { sel.innerHTML = '<option value="">Pick a door style first…</option>'; return; }
-  const sup = STYLE_SUPPLIER[st.supplier] || '';
-  const word = st.name.split(/\s+-\s+|\s+/)[0].toLowerCase();
-  let list = allRanges.filter(r => (!sup || r.supplier === sup) && r.name.toLowerCase().includes(word));
-  $('priceHint').textContent = list.length ? '' : `${st.name.split(' - ')[0]} isn't on the price list yet. Pick the nearest door to price it from.`;
-  if (!list.length) list = allRanges.filter(r => !sup || r.supplier === sup);
-  const label = r => list.length && r.name.toLowerCase().startsWith(word) ? r.name.slice(word.length).replace(/^\s*-?\s*/, '') || r.name : r.name;
-  sel.innerHTML = '<option value="">Choose colour…</option>' + list.map(r => `<option value="${esc(r.key)}">${esc(label(r))}</option>`).join('');
-  // Houzz door items often carry the colour too, e.g. "Buckingham - REED GREEN ASH"
-  const colourPart = (st.name.split(' - ')[1] || '').trim().toLowerCase();
-  const byColour = colourPart && list.find(r => label(r).toLowerCase() === colourPart || r.name.toLowerCase().endsWith(colourPart));
-  if (list.some(r => r.key === S.doors.priceRange)) sel.value = S.doors.priceRange;
-  else if (byColour) { sel.value = byColour.key; S.doors.priceRange = byColour.key; }
-  else if (list.length === 1) { sel.value = list[0].key; S.doors.priceRange = list[0].key; }
-  else { S.doors.priceRange = ''; }
-  $('priceRangeSelect').disabled = false;
-}
-$('priceRangeSelect').onchange = e => {
-  S.doors.priceRange = e.target.value;
-  const st = S.doors.style, opt = e.target.selectedOptions[0];
-  if (st && opt && opt.value && (!S.doors.name || S.doors._autoName)) { $('doorName').value = S.doors.name = st.name.split(' - ')[0] + ' - ' + opt.textContent; S.doors._autoName = true; }
-  save(); repriceIfReady();
-};
-$('doorName').oninput = e => { S.doors.name = e.target.value; S.doors._autoName = false; save(); };
-$('doorDesc').oninput = e => { S.doors.desc = e.target.value; save(); };
-$('doorPhoto').onchange = e => readPhoto(e.target.files[0], url => { S.doors.photo = url; save(); renderPicked(); });
-function readPhoto(file, cb){
-  if (!file) return;
-  const img = new Image(), fr = new FileReader();
-  fr.onload = () => { img.onload = () => {   // shrink so the draft stays small
-    const c = document.createElement('canvas'), k = Math.min(1, 400 / img.width);
-    c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    cb(c.toDataURL('image/jpeg', 0.8)); }; img.src = fr.result; };
-  fr.readAsDataURL(file);
-}
-
-let decors = [];
-getJSON('/api/pricing/decors').then(d => { decors = d; $('decorList').innerHTML = d.map(x => `<option value="${esc(x.decor)}">`).join(''); });
-$('carcassName').oninput = e => {
-  S.carcass.name = e.target.value;
-  const m = decors.find(d => d.decor.toLowerCase() === e.target.value.trim().toLowerCase());
-  if (m) { $('carcassBand').value = String(m.band); S.carcass.band = String(m.band); }
-  save(); repriceIfReady();
-};
-$('carcassBand').onchange = e => { S.carcass.band = e.target.value; save(); repriceIfReady(); };
-$('carcassDesc').oninput = e => { S.carcass.desc = e.target.value; save(); };
-
-// ------------------------------------------------------------- item library (Houzz-style)
-// library.json is copied from the Houzz Pro "My Items" library:
-// {n:name, c:category, s:supplier, d:description, p:unit cost ex VAT, i:photo URL, k:SKU}
-const MARKUP = 1.0;   // 100% on cost, same as cabinets and fronts
-const GROUPS = {
-  fronts:     {title:'Door styles',      cats:c => /kitchen styles|other doors/i.test(c)},
-  carcass:    {title:'Cabinet colours',  cats:c => /carcass/i.test(c)},
-  worktops:   {title:'Worktops',         cats:c => /worktop/i.test(c)},
-  appliances: {title:'Appliances',       cats:c => /hood|dishwasher|oven|hob|washing|fre?e?zer|microwave|fridge|warming|wine|dryer|appliance/i.test(c)},
-  accessories:{title:'Accessories',      cats:c => !/kitchen styles|other doors|carcass|worktop|hood|dishwasher|oven|hob|washing|fre?e?zer|microwave|fridge|warming|wine|dryer|appliance|service|consumable|expense|designer fee|flooring/i.test(c)},
-};
-let LIB = [];
-fetch('library.json').then(r => r.ok ? r.json() : []).then(d => { LIB = d; renderPicked(); }).catch(() => {});
-const sellOf = it => it.p > 0 ? Math.round(it.p * (1 + MARKUP) * 100) / 100 : '';
-
-let libMode = null, libCat = '', libCb = null, libMulti = false;
-function openLib(mode, cb, multi){
-  libMode = mode; libCb = cb; libMulti = !!multi; libCat = '';
-  $('libTitle').textContent = GROUPS[mode].title; $('libSearch').value = '';
-  const cats = [...new Set(LIB.filter(i => GROUPS[mode].cats(i.c)).map(i => i.c))].sort();
-  $('libChips').innerHTML = cats.length > 1 ? ['All', ...cats].map(c => `<button class="chip${c === 'All' ? ' on' : ''}" data-cat="${esc(c === 'All' ? '' : c)}">${esc(c)}</button>`).join('') : '';
-  $('libChips').style.display = cats.length > 1 ? '' : 'none';
-  $('libChips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
-    libCat = b.dataset.cat; $('libChips').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b)); renderLib();
-  });
-  $('libClose').textContent = multi ? 'Done' : 'Close';
-  $('lib').hidden = false; renderLib(); $('libSearch').focus();
-}
-function renderLib(){
-  const term = $('libSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const list = LIB.filter(i => GROUPS[libMode].cats(i.c) && (!libCat || i.c === libCat) &&
-    term.every(w => (i.n + ' ' + i.c + ' ' + (i.d || '')).toLowerCase().includes(w)));
-  const count = it => libMode === 'accessories' ? S.accessories.filter(a => a.libName === it.n).reduce((s, a) => s + num(a.qty), 0)
-                    : libMode === 'appliances' ? S.appliances.filter(a => a.libName === it.n).length : 0;
-  const selected = it => (libMode === 'fronts' && S.doors.style && S.doors.style.name === it.n) || (libMode === 'carcass' && S.carcass.libName === it.n) || (libMode === 'worktops' && S.worktop.libName === it.n);
-  $('libGrid').innerHTML = list.map((it, i) => { const c = count(it), sp = sellOf(it); return `<div class="tile${selected(it) ? ' sel' : ''}" data-i="${LIB.indexOf(it)}">
-    ${c ? `<span class="badge">${c} added</span>` : ''}
-    <div class="ph">${it.i ? `<img loading="lazy" src="${esc(it.i)}" alt="">` : ''}</div>
-    <div class="bd"><div class="nm">${esc(it.n)}</div>${libMode === 'fronts' || libMode === 'carcass' ? '' : `<div class="pr">${sp === '' ? 'Price on quote' : eur(sp) + ' ex VAT'}</div>`}</div></div>`; }).join('')
-    || '<p style="color:var(--dim);">Nothing matches.</p>';
-  $('libGrid').querySelectorAll('.tile').forEach(t => t.onclick = () => {
-    libCb(LIB[+t.dataset.i]);
-    if (libMulti) renderLib(); else closeLib();
-  });
-}
-function closeLib(){ $('lib').hidden = true; renderAcc(); renderAp(); renderPicked(); }
-$('libSearch').oninput = renderLib;
-$('libClose').onclick = closeLib;
-$('lib').onclick = e => { if (e.target === $('lib')) closeLib(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lib').hidden) closeLib(); });
-
-function pickedHTML(photo, name, desc, empty){
-  return name ? `${photo ? `<img src="${esc(photo)}" alt="">` : '<span class="noimg"></span>'}<div><div class="nm">${esc(name)}</div>${desc ? `<div class="ds">${esc(desc)}</div>` : ''}</div><button class="btn small ghost chg">Change</button>`
-              : `<span class="noimg"></span><div><div class="nm">${esc(empty)}</div><div class="ds">Click to choose from your item library</div></div><button class="btn small copper chg">Choose</button>`;
-}
-function renderPicked(){
-  const st = S.doors.style;
-  $('doorPicked').innerHTML = pickedHTML(S.doors.photo || (st && st.i), st && st.name, st && st.d, 'No door style picked');
-  $('carcassPicked').innerHTML = pickedHTML(S.carcass.photo, S.carcass.libName, '', 'No cabinet colour picked');
-  $('wtPicked').innerHTML = pickedHTML(S.worktop.photo, S.worktop.libName, '', 'No worktop picked');
-}
-$('doorPicked').onclick = () => openLib('fronts', it => {
-  S.doors.style = {name:it.n, supplier:it.s, d:it.d || '', i:it.i || ''};
-  S.doors.photo = it.i || null; S.doors.desc = it.d || ''; $('doorDesc').value = S.doors.desc;
-  S.doors.name = it.n.replace(/\b([A-Z]{2,})\b/g, w => w[0] + w.slice(1).toLowerCase()).replace(/\s*-\s*colou?r$/i, ''); S.doors._autoName = !/ - /.test(S.doors.name); $('doorName').value = S.doors.name;
-  S.doors.priceRange = ''; save();
-  loadPriceRanges().then(() => { if (S.doors.priceRange) $('priceRangeSelect').onchange({target:$('priceRangeSelect')}); repriceIfReady(); });
-});
-$('carcassPicked').onclick = () => openLib('carcass', it => {
-  S.carcass.libName = it.n; S.carcass.photo = it.i || null;
-  // Houzz names carry the carcass price band, e.g. "Hamilton Oak PG2"
-  const pg = it.n.match(/\bPG\s*([1-4])\b/i);
-  S.carcass.name = it.n.replace(/\s*-\s*cabinet colou?r.*$/i, '').replace(/\s*\(copy\)$/i, '').replace(/\s*\bPG\s*[1-4]\b/i, '').trim();
-  if (it.d) S.carcass.desc = it.d;
-  $('carcassName').value = S.carcass.name; $('carcassDesc').value = S.carcass.desc;
-  const m = decors.find(d => d.decor.toLowerCase() === S.carcass.name.toLowerCase());
-  if (pg) S.carcass.band = pg[1]; else if (m) S.carcass.band = String(m.band);
-  $('carcassBand').value = S.carcass.band;
-  save(); repriceIfReady();
-});
-$('wtPicked').onclick = () => openLib('worktops', it => {
-  S.worktop.libName = it.n; S.worktop.photo = it.i || null; S.worktop.name = it.n; S.worktop.desc = it.d || '';
-  const sp = sellOf(it); if (sp !== '') S.worktop.price = sp;
-  $('wtName').value = S.worktop.name; $('wtDesc').value = S.worktop.desc; $('wtPrice').value = S.worktop.price || ''; save();
-});
-$('accBrowse').onclick = () => openLib('accessories', it => {
-  const ex = S.accessories.find(a => a.libName === it.n);
-  if (ex) ex.qty = num(ex.qty) + 1;
-  else S.accessories.push({name:it.n, desc:it.d || '', qty:1, price:sellOf(it), photo:it.i || null, libName:it.n});
-  save();
-}, true);
-$('apBrowse').onclick = () => openLib('appliances', it => {
-  S.appliances.push({name:it.n, desc:it.d || '', price:sellOf(it), photo:it.i || null, libName:it.n}); save();
-}, true);
-
-// ------------------------------------------------------------- step 2: upload
-const dz = $('dropzone'), fileInput = $('fileInput'), statusEl = $('status');
-dz.onclick = () => fileInput.click();
+// ---------------- upload
+const dz = $('dropzone'), fi = $('fileInput');
+dz.onclick = () => fi.click();
 ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
 ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-dz.addEventListener('drop', e => e.dataTransfer.files.length && handleFile(e.dataTransfer.files[0]));
-fileInput.onchange = e => e.target.files.length && handleFile(e.target.files[0]);
+dz.addEventListener('drop', e => e.dataTransfer.files.length && handle(e.dataTransfer.files[0]));
+fi.onchange = e => { if (e.target.files.length) handle(e.target.files[0]); fi.value = ''; };
+function status(t, c){ $('status').textContent = t; $('status').className = 'status ' + (c || ''); }
 
-async function handleFile(file){
+async function handle(file){
   dz.classList.remove('error');
-  if (!file.name.toLowerCase().endsWith('.ifc')) { dz.classList.add('error'); setStatus('Please use a .ifc file exported from Winner Flex.', 'err'); return; }
-  setStatus(`Reading ${file.name}… (can take up to a minute)`, '');
+  if (!file.name.toLowerCase().endsWith('.ifc')) { dz.classList.add('error'); status('Please use a .ifc file exported from Winner Flex.', 'err'); return; }
+  status(`Reading ${file.name}…`);
   const form = new FormData(); form.append('file', file);
   const p = new URLSearchParams();
-  if (supplierSelect.value) p.set('supplier', supplierSelect.value);
-  if (doorTypeSelect.value) p.set('door_type', doorTypeSelect.value);
-  if (rangeSelect.value) p.set('door_range', rangeSelect.value);
+  if (sup.value) p.set('supplier', sup.value);
+  if (typ.value) p.set('door_type', typ.value);
+  if (rng.value) p.set('door_range', rng.value);
   try {
     const res = await fetch(API_URL + (p.toString() ? '?' + p : ''), {method:'POST', body:form});
     if (!res.ok) { const e = await res.json().catch(() => ({detail:res.statusText})); throw new Error(e.detail || 'Could not read the file'); }
-    S.result = await res.json(); S.filename = file.name.replace(/\.ifc$/i, ''); S.overrides = {};
-    await reprice();
-    renderModel();
-    setStatus(`Done: ${S.result.summary.cabinet_count} cabinets, ${S.result.summary.panel_count} panels, ${S.result.summary.appliance_count} appliances.`, 'ok');
-    save();
-  } catch (e) { dz.classList.add('error'); setStatus('Error: ' + e.message, 'err'); }
+    result = await res.json(); fileName = file.name.replace(/\.ifc$/i, '');
+    render();
+    status(`Done: ${file.name}`, 'ok');
+  } catch (e) { dz.classList.add('error'); status('Error: ' + e.message, 'err'); }
 }
-function setStatus(t, cls){ statusEl.textContent = t; statusEl.className = 'status ' + cls; }
 
-async function reprice(){
-  if (!S.result) return;
-  const res = await fetch(API + '/api/pricing/quote', {method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({result:S.result, price_range:S.doors.priceRange || null, carcass_band:S.carcass.band})});
-  S.pricing = res.ok ? await res.json() : null;
-  save();
+// ---------------- list
+const doorLabel = () => [sup.value, typ.value, rng.value, col.value].filter(Boolean).join(' · ');
+function fronts(){
+  const agg = {};
+  result.doors_and_trim.doors.forEach(d => d.fronts.forEach(f => {
+    const k = `${f.type}|${f.height_mm}|${f.width_mm}|${f.standard_size === false}`;
+    agg[k] = agg[k] || {f, qty:0, cabs:[]}; agg[k].qty += f.qty; agg[k].cabs.push(d.cabinet_code);
+  }));
+  return Object.values(agg).sort((a, b) => a.f.type.localeCompare(b.f.type) || b.f.height_mm - a.f.height_mm || b.f.width_mm - a.f.width_mm);
 }
-let repriceTimer;
-function repriceIfReady(){ clearTimeout(repriceTimer); repriceTimer = setTimeout(async () => { if (S.result) { await reprice(); renderModel(); } }, 300); }
+function panelOrder(p){
+  const o = p.panel_order && Object.entries(p.panel_order.standard_options || {}).find(([, v]) => v);
+  return o ? `${o[1][0]} × ${o[1][1]} (${o[0]})` : 'MTM';
+}
+function render(){
+  const r = result, dt = r.doors_and_trim;
+  $('results').style.display = 'block';
+  $('phJob').textContent = `House of Kitchens – ${fileName}${doorLabel() ? ' – ' + doorLabel() : ''}`;
 
-function renderModel(){
-  const r = S.result; if (!r) return;
-  $('modelResults').style.display = '';
-  const dt = r.doors_and_trim, cab = r.cabinets;
-  const fronts = dt.doors.reduce((n, d) => n + d.fronts.reduce((m, f) => m + f.qty, 0), 0);
-  const trim = dt.trim_cutting || {};
-  const card = (k, v, s) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`;
-  $('modelCards').innerHTML =
-    card('Cabinets', r.summary.cabinet_count, `${cab.base.length} base · ${cab.wall.length} wall · ${cab.tall.length} tall`) +
-    card('Fronts', fronts, 'doors & drawer fronts') +
-    card('Panels', r.summary.panel_count, 'end panels') +
-    ['Kickboard','Cornice','Light pelmet'].filter(k => trim[k]).map(k => card(k, trim[k].lengths_required + ' × 3m', (trim[k].total_length_mm/1000).toFixed(2) + 'm')).join('') +
-    (dt.worktop_area_m2 != null ? card('Worktop', (dt.worktop_cutting ? dt.worktop_cutting.lengths_required : '–') + ' × 4.05m', dt.worktop_area_m2.toFixed(2) + 'm²') : '') +
-    card('Appliances', r.summary.appliance_count, 'in the model');
+  let h = '', n = 0;
+  [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
+    const list = r.cabinets[k] || []; if (!list.length) return; n += list.length;
+    h += `<h3>${l} (${list.length})</h3><table><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th><th class="num">D</th></tr>` +
+      list.map(c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td><td class="num">${c.depth_mm}</td></tr>`).join('') + '</table>';
+  });
+  $('cabinets').innerHTML = h; $('cabCount').textContent = n + ' cabinets';
+
+  const fr = fronts(); const total = fr.reduce((s, a) => s + a.qty, 0);
+  $('fronts').innerHTML = (doorLabel() ? `<div class="hint" style="margin:0 0 8px;">Door: <strong>${esc(doorLabel())}</strong></div>` : '') +
+    `<table><tr><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>For</th></tr>` +
+    fr.map(a => `<tr><td>${esc(a.f.type.replace(/_/g,' '))}${a.f.standard_size === false ? ' <span class="mtm">MTM</span>' : ''}</td><td class="num">${a.f.height_mm} × ${a.f.width_mm}</td><td class="num">${a.qty}</td><td>${esc(a.cabs.join(', '))}</td></tr>`).join('') + '</table>';
+  $('frontCount').textContent = total + ' fronts';
+
+  $('panels').innerHTML = dt.panels.length
+    ? `<table><tr><th>Code</th><th>Description</th><th class="num">Height</th><th>Order size</th></tr>` +
+      dt.panels.map(p => `<tr><td class="code">${esc(p.code)}</td><td>${esc(p.description)}</td><td class="num">${p.panel_order ? p.panel_order.actual_height_mm : p.height_mm}</td><td>${esc(panelOrder(p))}</td></tr>`).join('') + '</table>'
+    : '<p class="hint">No panels in the model.</p>';
+  $('panelCount').textContent = dt.panels.length + ' panels';
 
   $('notCatalogued').innerHTML = dt.doors_not_catalogued && dt.doors_not_catalogued.length
-    ? `<div class="warnbox"><strong>Fronts not worked out for:</strong> ${dt.doors_not_catalogued.map(esc).join(', ')}. These cabinets have no door sizes yet, so add their fronts as custom items in step 3.</div>` : '';
-
-  const row = c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td></tr>`;
-  let h = '';
-  [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
-    if (!cab[k].length) return;
-    h += `<h3>${l} cabinets (${cab[k].length})</h3><table><thead><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th></tr></thead><tbody>${cab[k].map(row).join('')}</tbody></table>`;
-  });
-  h += `<h3>Fronts</h3><table><thead><tr><th>Cabinet</th><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>Size</th></tr></thead><tbody>` +
-    dt.doors.map(d => d.fronts.map(f => `<tr><td class="code">${esc(d.cabinet_code)}</td><td>${esc(f.type.replace('_',' '))}</td><td class="num">${f.height_mm} × ${f.width_mm}</td><td class="num">${f.qty}</td><td>${f.standard_size === false ? '<span class="pill err">Made to measure</span>' : f.standard_size ? '<span class="pill ok">Standard</span>' : ''}</td></tr>`).join('')).join('') + `</tbody></table>`;
-  if (dt.panels.length) h += `<h3>Panels</h3><table><thead><tr><th>Code</th><th>Description</th><th class="num">H</th></tr></thead><tbody>${dt.panels.map(p => `<tr><td class="code">${esc(p.code)}</td><td>${esc(p.description)}</td><td class="num">${p.panel_order ? p.panel_order.actual_height_mm : p.height_mm}</td></tr>`).join('')}</tbody></table>`;
-  if (r.appliances.length) h += `<h3>Appliances in the model</h3><table><tbody>${r.appliances.map(a => `<tr><td class="code">${esc(a.code)}</td><td>${esc(a.description)}</td></tr>`).join('')}</tbody></table>`;
-  $('modelDetail').innerHTML = h;
+    ? `<div class="warn"><strong>No front sizes worked out for:</strong> ${dt.doors_not_catalogued.map(esc).join(', ')}. Add those fronts by hand.</div>` : '';
 }
 
-// ------------------------------------------------------------- step 3
-$('cuAdd').onclick = () => {
-  if (!$('cuName').value.trim()) { $('cuName').focus(); return; }
-  S.accessories.push({name:$('cuName').value.trim(), desc:$('cuDesc').value.trim(), qty:Math.max(1, num($('cuQty').value)), price:num($('cuPrice').value), photo:null});
-  $('cuName').value = $('cuDesc').value = $('cuPrice').value = ''; $('cuQty').value = 1; save(); renderAcc();
-};
-function renderAcc(){
-  $('accBody').innerHTML = S.accessories.map((a, i) => `<tr>
-    <td>${a.photo ? `<img class="thumb" src="${esc(a.photo)}" alt="">` : '<span class="thumb"></span>'}</td>
-    <td><input type="text" data-a="${i}" data-f="name" value="${esc(a.name)}"></td>
-    <td><input type="text" data-a="${i}" data-f="desc" value="${esc(a.desc)}" placeholder="Shown on the quote"></td>
-    <td class="num"><input type="number" data-a="${i}" data-f="qty" value="${a.qty}" min="1" style="width:60px;"></td>
-    <td class="num"><input type="number" data-a="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;${a.price === '' ? 'border-color:var(--err);' : ''}" placeholder="price"></td>
-    <td class="num">${eur(num(a.price) * num(a.qty))}</td><td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
-    || '<tr><td colspan="7" style="color:var(--dim);">No accessories yet. Browse your items or add a custom one.</td></tr>';
-  $('accBody').querySelectorAll('input').forEach(el => el.onchange = () => {
-    const a = S.accessories[+el.dataset.a]; a[el.dataset.f] = el.dataset.f === 'qty' ? Math.max(1, num(el.value)) : el.dataset.f === 'price' ? (el.value === '' ? '' : num(el.value)) : el.value; save(); renderAcc();
-  });
-  $('accBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.accessories.splice(+b.dataset.del, 1); save(); renderAcc(); });
-}
-function renderAp(){
-  $('apBody').innerHTML = S.appliances.map((a, i) => `<tr>
-    <td>${a.photo ? `<img class="thumb" src="${esc(a.photo)}" alt="">` : '<span class="thumb"></span>'}</td>
-    <td><input type="text" data-p="${i}" data-f="name" value="${esc(a.name)}" placeholder="e.g. NordMende 60cm induction hob"></td>
-    <td><input type="text" data-p="${i}" data-f="desc" value="${esc(a.desc)}"></td>
-    <td class="num"><input type="number" data-p="${i}" data-f="price" value="${a.price}" step="0.01" style="width:100px;"></td>
-    <td><button class="x" data-del="${i}">×</button></td></tr>`).join('')
-    || '<tr><td colspan="5" style="color:var(--dim);">No appliances on this quote.</td></tr>';
-  $('apBody').querySelectorAll('input').forEach(el => el.onchange = () => { const a = S.appliances[+el.dataset.p]; a[el.dataset.f] = el.dataset.f === 'price' ? num(el.value) : el.value; save(); });
-  $('apBody').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { S.appliances.splice(+b.dataset.del, 1); save(); renderAp(); });
-}
-$('apAdd').onclick = () => { S.appliances.push({name:'', desc:'', price:'', photo:null}); save(); renderAp(); };
-function renderStep3(){
-  renderAcc(); renderAp(); renderPicked();
-  const wc = S.result && S.result.doors_and_trim.worktop_cutting;
-  $('wtHint').textContent = wc ? `From the model: ${S.result.doors_and_trim.worktop_area_m2.toFixed(2)}m², ${wc.lengths_required} × 4.05m lengths (${wc.board_lengths_mm.map(l => (l/1000).toFixed(2) + 'm').join(', ')}).` : '';
-  $('apHint').textContent = S.result && S.result.appliances.length ? 'In the model: ' + S.result.appliances.map(a => a.description).join(', ') : '';
-}
-[['wtName','worktop','name'],['wtDesc','worktop','desc'],['wtPrice','worktop','price'],['fitPrice','fitting','price'],['fitDesc','fitting','desc']].forEach(([id, o, k]) => {
-  $(id).oninput = e => { S[o][k] = e.target.value; save(); };
-});
-$('wtSeparate').onchange = e => { S.worktop.separate = e.target.checked; save(); };
-$('discount').oninput = e => { S.discount = num(e.target.value); save(); };
-
-// ------------------------------------------------------------- step 4: totals
-function modelLines(){
-  return (S.pricing ? S.pricing.lines : []).map((l, i) => {
-    const o = S.overrides[i];
-    const each = l.unit_sell != null ? l.unit_sell : (o != null && o !== '' ? num(o) : null);
-    return {...l, idx:i, each, total: each == null ? 0 : each * l.qty, missing: l.unit_sell == null};
-  });
-}
-function totals(){
-  const lines = modelLines();
-  const model = lines.reduce((s, l) => s + l.total, 0);
-  const acc = S.accessories.reduce((s, a) => s + num(a.price) * num(a.qty), 0);
-  const fit = num(S.fitting.price), wt = num(S.worktop.price);
-  const ap = S.appliances.reduce((s, a) => s + num(a.price), 0);
-  const kitchen = model + acc + fit + (S.worktop.separate ? 0 : wt);
-  const subtotal = kitchen + (S.worktop.separate ? wt : 0) + ap;
-  const disc = num(S.discount);
-  const vat = Math.round((subtotal - disc) * VAT * 100) / 100;
-  const total = subtotal - disc + vat;
-  const cost = lines.reduce((s, l) => s + (l.unit_net || 0) * l.qty, 0);
-  return {lines, model, acc, fit, wt, ap, kitchen, subtotal, disc, vat, total, cost, missing: lines.filter(l => l.missing && l.each == null)};
-}
-
-function buildQuote(){
-  const t = totals();
-  const card = (k, v, s) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s || ''}</div></div>`;
-  $('sumCards').innerHTML = card('Cabinets, doors & trim', eur(t.model), t.cost ? 'cost ' + eur(t.cost) : '') +
-    card('Accessories', eur(t.acc)) + card('Fitting', eur(t.fit)) + card('Worktop', eur(t.wt)) + card('Appliances', eur(t.ap)) +
-    card('Total inc. VAT', eur(t.total), 'VAT ' + eur(t.vat));
-
-  const warn = [];
-  if (!S.result) warn.push('No kitchen model uploaded yet (step 2).');
-  if (S.result && !S.doors.priceRange) warn.push('No door price range picked, so fronts, panels and trim are unpriced (step 2).');
-  if (t.missing.length) warn.push(`${t.missing.length} line(s) have no price. Open the staff breakdown below and type a price for each.`);
-  if (!S.fitting.price) warn.push('No fitting price entered (step 3).');
-  const noPrice = [...S.accessories, ...S.appliances].filter(x => x.price === '' || x.price == null).map(x => x.name);
-  if (noPrice.length) warn.push('No price yet for: ' + noPrice.join(', ') + ' (step 3).');
-  $('pricingWarn').innerHTML = warn.length ? `<div class="warnbox">${warn.map(esc).join('<br>')}</div>` : '';
-  if (t.missing.length) $('breakdownWrap').open = true;
-
-  $('breakdownBody').innerHTML = t.lines.map(l => `<tr class="${l.missing ? 'unpriced' : ''}">
-    <td>${esc(l.section)}</td><td>${esc(l.name)}${l.detail ? `<div class="hint">${esc(l.detail)}</div>` : ''}${l.missing ? `<div class="hint" style="color:var(--err);">${esc(l.note || '')}</div>` : ''}</td>
-    <td class="num">${l.qty}</td><td class="num">${l.unit_net != null ? eur(l.unit_net) : '–'}</td>
-    <td class="num">${l.missing ? `<input type="number" step="0.01" data-ov="${l.idx}" value="${S.overrides[l.idx] ?? ''}" placeholder="sell €">` : eur(l.each)}</td>
-    <td class="num">${eur(l.total)}</td></tr>`).join('') +
-    S.accessories.map(a => `<tr><td>Accessories</td><td>${esc(a.name)}</td><td class="num">${a.qty}</td><td class="num">–</td><td class="num">${eur(a.price)}</td><td class="num">${eur(num(a.price) * num(a.qty))}</td></tr>`).join('') +
-    (t.fit ? `<tr><td>Fitting</td><td>Kitchen fitting</td><td class="num">1</td><td class="num">–</td><td class="num">${eur(t.fit)}</td><td class="num">${eur(t.fit)}</td></tr>` : '');
-  $('breakdownBody').querySelectorAll('[data-ov]').forEach(el => el.onchange = () => { S.overrides[el.dataset.ov] = el.value; save(); buildQuote(); });
-
-  $('quotePreview').innerHTML = quoteHTML(t);
-}
-
-function itemHTML(name, desc, photo){
-  return `<tr class="item"><td colspan="2"><div class="itm"><div class="ph">${photo ? `<img src="${photo}" alt="">` : ''}</div>
-    <div><div class="nm">${esc(name)}</div>${desc ? `<div class="ds">${esc(desc)}</div>` : ''}</div></div></td></tr>`;
-}
-function fmtDate(d){ if (!d) return ''; const x = new Date(d + 'T00:00:00'); return x.toLocaleDateString('en-IE', {day:'numeric', month:'short', year:'numeric'}); }
-
-function quoteHTML(t){
-  const c = S.customer;
-  const title = [c.name, c.title].filter(Boolean).join(' - ');
-  const memo = (c.memo || '').split('\n');
-  const head = memo.length > 1 && memo[0].length < 60 ? `<strong>${esc(memo[0])}</strong>` + `<p>${esc(memo.slice(1).join('\n'))}</p>` : `<p>${esc(c.memo)}</p>`;
-
-  let rows = `<tr class="sec"><td>Kitchen Design</td><td>${eur(t.kitchen)}</td></tr>`;
-  if (S.doors.name) rows += itemHTML(S.doors.name, S.doors.desc, S.doors.photo);
-  if (S.carcass.name) rows += itemHTML(`${S.carcass.name} - Cabinet Colour`, S.carcass.desc, S.carcass.photo);
-  if (!S.worktop.separate && S.worktop.name) rows += itemHTML(S.worktop.name, S.worktop.desc, S.worktop.photo);
-  S.accessories.forEach(a => rows += itemHTML((num(a.qty) > 1 ? a.qty + ' × ' : '') + a.name, a.desc, a.photo));
-  if (num(S.fitting.price)) rows += itemHTML('Kitchen Fitting', S.fitting.desc);
-  if (S.worktop.separate && (S.worktop.name || t.wt)) {
-    rows += `<tr class="sec"><td>Worktop</td><td>${eur(t.wt)}</td></tr>` + itemHTML(S.worktop.name || 'Worktop', S.worktop.desc, S.worktop.photo);
-  }
-  if (S.appliances.length) {
-    rows += `<tr class="sec"><td>Appliances</td><td>${eur(t.ap)}</td></tr>` + S.appliances.map(a => itemHTML(a.name, a.desc, a.photo)).join('');
-  }
-  const p = [0.5, 0.4, 0.1].map(f => Math.round(t.total * f * 100) / 100);
-  p[2] = Math.round((t.total - p[0] - p[1]) * 100) / 100;
-
-  return `
-  <div class="hdr"><div><h1>House of Kitchens</h1><div class="addr">House of Kitchens<br>Main Street, Stradbally, Co. Laois, R32P9PA<br>VAT Number: 4594091LH<br>Marcus Kenny<br>+353894895088</div></div>
-    <img src="logo.png" alt=""></div>
-  <div class="titlerow"><div class="t">${esc(title || 'Kitchen proposal')}</div><div style="text-align:right;"><div class="small-k">Date</div>${esc(fmtDate(c.date))}</div></div>
-  <div class="billto"><div><div class="k">Bill To</div>${esc(c.name)}<br>${[c.address, c.eircode].filter(Boolean).map(esc).join('<br>')}${c.email ? '<br>' + esc(c.email) : ''}${c.phone ? '<br>' + esc(c.phone) : ''}</div>
-    <div style="text-align:right;"><div class="k">Proposal</div>${esc(c.proposal)}</div></div>
-  <div class="memo"><div class="mk">Memo</div>${head}</div>
-  <table class="q"><thead><tr><th>Item</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="tot">
-    <div><span>Subtotal</span><span>${eur(t.subtotal)}</span></div>
-    ${t.disc ? `<div><span>Discount</span><span>-${eur(t.disc)}</span></div>` : ''}
-    <div><span>VAT Reduced Rate (13.5%)</span><span>${eur(t.vat)}</span></div>
-    <div class="big"><span>Total</span><span>${eur(t.total)}</span></div>
-  </div>
-  <div class="page-break"></div>
-  <h4 style="margin:30px 0 0; font-size:13px;">Payments</h4>
-  <div class="pay">
-    <div><div class="a">${eur(p[0])}</div>Deposit<br><span class="small-k">On acceptance</span></div>
-    <div><div class="a">${eur(p[1])}</div>Pre Installation<br><span class="small-k">Before installation starts</span></div>
-    <div><div class="a">${eur(p[2])}</div>Final Payment<br><span class="small-k">On completion</span></div>
-  </div>
-  <div class="terms">${TERMS}</div>
-  <div class="sign"><div>House of Kitchens<br>Company Signature</div><div>&nbsp;<br>Client Signature</div></div>`;
-}
-
-const TERMS = `<h4 style="font-size:13px;">Terms and Conditions</h4>
-<h4>PAYMENT SCHEDULE</h4><ul><li>50% deposit due upon acceptance of quotation to confirm booking and order materials.</li><li>40% due prior to commencement of installation.</li><li>10% balance due upon completion and client approval.</li></ul>
-<p>Payments are accepted via bank transfer to the details provided on your invoice. Work will not begin, nor materials be ordered, until the deposit has been received.</p>
-<h4>QUOTATION VALIDITY</h4><p>All quotations are valid for 30 days from the date of issue. Prices may be subject to change thereafter depending on supplier costs or material availability.</p>
-<h4>SCOPE OF WORKS</h4><p>The quotation covers only the items and works specifically listed. Any alterations, additions, or omissions requested by the client after acceptance will be treated as variations and may affect cost and completion time. All variations must be confirmed in writing.</p>
-<h4>MATERIALS &amp; APPLIANCES</h4><p>All products and appliances are supplied as per the agreed specification. If an item becomes unavailable, a comparable alternative of equal quality will be offered.</p><p>House of Kitchens is not responsible for manufacturer faults or failures — warranty claims must be made directly with the manufacturer.</p>
-<h4>ACCESS &amp; SITE PREPARATION</h4><p>The client is responsible for ensuring access to the property and that the workspace is clear and ready on the agreed start date.</p><p>Electricity, water, and adequate parking must be available for the installation team.</p>
-<h4>DELAYS</h4><p>While every effort is made to complete works within the agreed timeframe, House of Kitchens cannot accept liability for delays caused by supplier shortages, client-requested changes, or unforeseen site conditions. Any such delays will be communicated promptly.</p>
-<h4>WASTE REMOVAL</h4><p>General packaging and small waste removal are not included unless otherwise stated. Waste disposal or skip hire can be arranged at an additional cost.</p>
-<h4>GUARANTEE &amp; WORKMANSHIP</h4><p>All installation work is guaranteed for 12 months from completion against defects in workmanship.</p><p>This guarantee excludes normal wear and tear, misuse, or damage caused after completion.</p>
-<h4>INSURANCE &amp; LIABILITY</h4><p>House of Kitchens carries full public liability insurance.</p><p>Liability is limited to the total contract value and excludes indirect, consequential, or third-party losses.</p><p>Clients are advised to maintain appropriate household insurance during works.</p>
-<h4>OWNERSHIP OF GOODS</h4><p>All materials supplied remain the property of House of Kitchens until full payment has been received.</p>
-<h4>ACCEPTANCE OF TERMS</h4><p>By signing this quotation or confirming acceptance in writing, the client agrees to the terms outlined above and authorises House of Kitchens to proceed with the works as detailed.</p>`;
-
-// ------------------------------------------------------------- order lists
-function ordersHTML(){
-  const r = S.result, c = S.customer;
-  const job = `<div class="hdr"><div><h1>Order lists</h1><div class="addr">${esc(c.proposal)} · ${esc(c.name)} · ${esc(c.title)}<br>${esc(fmtDate(c.date))}</div></div><img src="logo.png" alt=""></div>`;
-  if (!r) return job + '<p>No kitchen model uploaded.</p>';
-  const dt = r.doors_and_trim;
-  let h = job;
-  h += `<h2 class="ol">1. Cabinets</h2><p>Carcass colour: <strong>${esc(S.carcass.name)}</strong></p>`;
-  [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
-    if (!r.cabinets[k].length) return;
-    h += `<h4>${l}</h4><table class="ol"><thead><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th><th class="num">D</th></tr></thead><tbody>` +
-      r.cabinets[k].map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.description)}</td><td class="num">${x.width_mm}</td><td class="num">${x.height_mm}</td><td class="num">${x.depth_mm}</td></tr>`).join('') + '</tbody></table>';
-  });
-  const rng = S.pricing && S.pricing.price_range;
-  h += `<h2 class="ol page-break">2. Fronts &amp; panels</h2><p>Door: <strong>${esc([S.doors.supplier, S.doors.doorType, S.doors.range, S.doors.colour].filter(Boolean).join(' · ') || rng || '—')}</strong></p>`;
-  const agg = {};
-  dt.doors.forEach(d => d.fronts.forEach(f => { const k = `${f.type}|${f.height_mm}|${f.width_mm}`; agg[k] = agg[k] || {f, qty:0, cabs:[]}; agg[k].qty += f.qty; agg[k].cabs.push(d.cabinet_code); }));
-  h += `<table class="ol"><thead><tr><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>For</th></tr></thead><tbody>` +
-    Object.values(agg).sort((a, b) => b.f.height_mm - a.f.height_mm || b.f.width_mm - a.f.width_mm)
-      .map(a => `<tr><td>${esc(a.f.type.replace('_',' '))}${a.f.standard_size === false ? ' (MTM)' : ''}</td><td class="num">${a.f.height_mm} × ${a.f.width_mm}</td><td class="num">${a.qty}</td><td>${esc(a.cabs.join(', '))}</td></tr>`).join('') + '</tbody></table>';
-  if (dt.panels.length) h += `<h4>Panels</h4><table class="ol"><tbody>` + dt.panels.map(p => {
-      const o = p.panel_order && Object.entries(p.panel_order.standard_options || {}).find(([, v]) => v);
-      return `<tr><td>${esc(p.code)}</td><td>${esc(p.description)}</td><td>${o ? `${o[1][0]} × ${o[1][1]} (${esc(o[0])})` : 'MTM'}</td></tr>`; }).join('') + '</tbody></table>';
-  h += `<h2 class="ol">3. Trim &amp; worktop</h2><table class="ol"><thead><tr><th>Item</th><th class="num">Lengths</th><th>Cut plan (mm)</th></tr></thead><tbody>` +
-    Object.entries(dt.trim_cutting || {}).map(([k, t]) => `<tr><td>${esc(k)}</td><td class="num">${t.lengths_required} × 3m</td><td>${t.cut_plan_mm.map(b => b.join(' + ')).join(' | ')}</td></tr>`).join('') +
-    (dt.worktop_cutting ? `<tr><td>Worktop${S.worktop.name ? ' – ' + esc(S.worktop.name) : ''}</td><td class="num">${dt.worktop_cutting.lengths_required} × 4.05m</td><td>${dt.worktop_cutting.cut_plan_mm.map(b => b.join(' + ')).join(' | ')}</td></tr>` : '') + '</tbody></table>';
-  if (S.accessories.length) h += `<h2 class="ol">4. Accessories</h2><table class="ol"><tbody>` + S.accessories.map(a => `<tr><td>${esc(a.name)}</td><td class="num">${a.qty}</td></tr>`).join('') + '</tbody></table>';
-  if (S.appliances.length) h += `<h2 class="ol">5. Appliances</h2><table class="ol"><tbody>` + S.appliances.map(a => `<tr><td>${esc(a.name)}</td></tr>`).join('') + '</tbody></table>';
-  return h;
-}
-
-function doPrint(kind){
-  if (kind === 'quote') { $('printQuote').innerHTML = `<div class="doc">${quoteHTML(totals())}</div>`; }
-  else { $('printOrders').innerHTML = `<div class="doc">${ordersHTML()}</div>`; }
-  document.body.className = 'print-' + kind;
-  if (kind === 'quote') { try { const n = parseInt((S.customer.proposal || '').replace(/\D/g, ''), 10); if (n) localStorage.setItem('hok_last_proposal', String(Math.max(n, parseInt(localStorage.getItem('hok_last_proposal') || '0', 10)))); } catch(e){} }
-  const old = document.title;
-  document.title = kind === 'quote' ? `${S.customer.name || 'Customer'} - ${S.customer.title || 'Kitchen'}` : `Order lists - ${S.customer.proposal}`;
-  setTimeout(() => { window.print(); document.title = old; }, 150);
-}
-$('printQuoteBtn').onclick = () => doPrint('quote');
-$('printOrdersBtn').onclick = () => doPrint('orders');
-window.addEventListener('afterprint', () => { document.body.className = ''; });
-
+$('printBtn').onclick = () => { const t = document.title; document.title = `Order list - ${fileName}`; window.print(); document.title = t; };
 $('csvBtn').onclick = () => {
-  if (!S.result) return;
-  const r = S.result, rows = [['Section','Code','Description','Qty / W','H','D']];
-  ['base','wall','tall'].forEach(g => r.cabinets[g].forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
-  r.doors_and_trim.doors.forEach(d => d.fronts.forEach(f => rows.push(['Front', d.cabinet_code, f.type, f.qty, f.height_mm, f.width_mm])));
-  r.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description, 1, p.height_mm, '']));
-  Object.entries(r.doors_and_trim.trim_cutting || {}).forEach(([k, t]) => rows.push(['Trim', k, '3m lengths', t.lengths_required, '', '']));
-  S.accessories.forEach(a => rows.push(['Accessory', '', a.name, a.qty, '', '']));
+  if (!result) return;
+  const rows = [['Section','Code / type','Description / size','W','H','D / qty']];
+  ['base','wall','tall'].forEach(g => (result.cabinets[g] || []).forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
+  fronts().forEach(a => rows.push(['Front', a.f.type + (a.f.standard_size === false ? ' (MTM)' : ''), a.cabs.join(' '), a.f.width_mm, a.f.height_mm, a.qty]));
+  result.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description + ' – order ' + panelOrder(p), '', p.height_mm, 1]));
   const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-  download(csv, `${S.customer.proposal || 'quote'}-order.csv`, 'text/csv');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `${fileName}-order-list.csv`; document.body.appendChild(a); a.click(); a.remove();
 };
-function download(content, name, type){
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], {type})); a.download = name;
-  document.body.appendChild(a); a.click(); a.remove();
-}
-
-// ------------------------------------------------------------- drafts
-$('btnSaveDraft').onclick = () => download(JSON.stringify(S), `${S.customer.proposal || 'quote'} ${S.customer.name || ''}.json`.trim(), 'application/json');
-$('btnOpenDraft').onclick = () => $('draftFile').click();
-$('draftFile').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  f.text().then(t => { S = Object.assign(freshState(), JSON.parse(t)); save(); hydrate(); go(1); }).catch(() => alert('That file isn\'t a saved quote.'));
-  e.target.value = '';
-};
-$('btnNew').onclick = () => { if (confirm('Start a new quote? Anything not saved as a draft will be cleared.')) { S = freshState(); save(); hydrate(); go(1); } };
-
-function hydrate(){
-  bindCustomer();
-  $('doorName').value = S.doors.name || ''; $('doorDesc').value = S.doors.desc || '';
-  $('carcassName').value = S.carcass.name || ''; $('carcassBand').value = S.carcass.band || '2'; $('carcassDesc').value = S.carcass.desc || '';
-  $('wtName').value = S.worktop.name || ''; $('wtDesc').value = S.worktop.desc || ''; $('wtPrice').value = S.worktop.price || ''; $('wtSeparate').checked = S.worktop.separate !== false;
-  $('fitPrice').value = S.fitting.price || ''; $('fitDesc').value = S.fitting.desc || ''; $('discount').value = S.discount || 0;
-  loadSuppliers(); loadPriceRanges(); renderPicked();
-  if (S.result) { renderModel(); setStatus(`Loaded: ${S.filename || 'model'} (${S.result.summary.cabinet_count} cabinets).`, 'ok'); }
-  else { $('modelResults').style.display = 'none'; setStatus('', ''); }
-  updateTop();
-}
-load(); hydrate();
 </script>
 </body>
 </html>
