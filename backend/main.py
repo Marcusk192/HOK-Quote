@@ -119,6 +119,19 @@ def is_corner_unit(cabinet: dict) -> bool:
     return "cnr" in text or "corner" in text
 
 
+def is_blind_corner(cabinet: dict) -> bool:
+    """
+    Only blind corners (e.g. BCD 90/45 "900 Cnr D/Line Base 450 Door")
+    need the 1.5m corner filler. Units that go round the corner, like
+    L-shaped (BCSH) and diagonal (WDC) corners, don't (confirmed with
+    Marcus).
+    """
+    if not is_corner_unit(cabinet):
+        return False
+    text = f"{cabinet['code']} {cabinet['description']}".lower()
+    return not ("l' shaped" in text or "l shaped" in text or "l\" shaped" in text or "diagonal" in text or "diag " in text)
+
+
 def top_face_area(element) -> float:
     """
     True plan (footprint) area of a flat slab, in m^2, computed from
@@ -862,7 +875,7 @@ def parse_ifc(path: str) -> dict:
                         else:
                             cab = correct_width_depth(cab)
                         cabinets.append(cab)
-                        if is_corner_unit(cab):
+                        if is_blind_corner(cab):
                             corner_filler_count += 1
                     else:  # IfcBuildingElementProxy
                         dims = sorted([b["w"], b["d"], b["h"]])
