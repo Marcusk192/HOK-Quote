@@ -83,6 +83,7 @@
     <h2>Cabinets <span id="cabCount"></span></h2><div id="cabinets"></div>
     <h2>Fronts <span id="frontCount"></span></h2><div id="fronts"></div>
     <h2>Panels <span id="panelCount"></span></h2><div id="panels"></div>
+    <div id="splashWrap"><h2>Splashback <span id="splashCount"></span></h2><div id="splash"></div></div>
     <div class="toolbar">
       <button class="btn copper" id="printBtn">Print / save as PDF</button>
       <button class="btn ghost" id="csvBtn">Download CSV</button>
@@ -188,6 +189,12 @@ function render(){
     : '<p class="hint">No panels in the model.</p>';
   $('panelCount').textContent = dt.panels.length + ' panels';
 
+  const sb = dt.splashbacks || [];
+  $('splashWrap').style.display = sb.length ? '' : 'none';
+  $('splash').innerHTML = `<table><tr><th>Code</th><th class="num">Width</th><th class="num">Height</th><th class="num">Thickness</th></tr>` +
+    sb.map(x => `<tr><td class="code">${esc(x.code)}</td><td class="num">${x.width_mm}</td><td class="num">${x.height_mm}</td><td class="num">${x.thickness_mm}</td></tr>`).join('') + '</table>';
+  $('splashCount').textContent = sb.length ? `${sb.length} pieces · ${dt.splashback_area_m2} m²` : '';
+
   $('notCatalogued').innerHTML = dt.doors_not_catalogued && dt.doors_not_catalogued.length
     ? `<div class="warn"><strong>No front sizes worked out for:</strong> ${dt.doors_not_catalogued.map(esc).join(', ')}. Add those fronts by hand.</div>` : '';
 }
@@ -199,6 +206,7 @@ $('csvBtn').onclick = () => {
   ['base','wall','tall'].forEach(g => (result.cabinets[g] || []).forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
   fronts().forEach(a => rows.push(['Front', a.f.type + (a.f.standard_size === false ? ' (MTM)' : ''), a.cabs.join(' '), a.f.width_mm, a.f.height_mm, a.qty]));
   result.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description + ' – order ' + panelOrder(p), '', p.height_mm, 1]));
+  (result.doors_and_trim.splashbacks || []).forEach(x => rows.push(['Splashback', x.code, x.description, x.width_mm, x.height_mm, 1]));
   const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `${fileName}-order-list.csv`; document.body.appendChild(a); a.click(); a.remove();
 };
