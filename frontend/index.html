@@ -153,6 +153,16 @@ function panelOrder(p){
   const o = p.panel_order && Object.entries(p.panel_order.standard_options || {}).find(([, v]) => v);
   return o ? `${o[1][0]} × ${o[1][1]} (${o[0]})` : 'MTM';
 }
+// Winner keeps the standard code/description when a unit is resized
+// (e.g. "600 Wall 900 High" drawn 500 wide), so flag the difference.
+function resized(c){
+  const notes = [];
+  const w = (c.description.match(/^\s*(\d{3,4})\b/) || [])[1];
+  const h = (c.description.match(/(\d{3,4})\s*High/i) || [])[1];
+  if (w && Math.abs(+w - c.width_mm) > 10) notes.push(`${c.width_mm} wide (code says ${w})`);
+  if (h && Math.abs(+h - c.height_mm) > 10) notes.push(`${c.height_mm} high (code says ${h})`);
+  return notes.length ? ` <span class="mtm">resized: ${notes.join(', ')}</span>` : '';
+}
 function render(){
   const r = result, dt = r.doors_and_trim;
   $('results').style.display = 'block';
@@ -162,7 +172,7 @@ function render(){
   [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
     const list = r.cabinets[k] || []; if (!list.length) return; n += list.length;
     h += `<h3>${l} (${list.length})</h3><table><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th><th class="num">D</th></tr>` +
-      list.map(c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td><td class="num">${c.depth_mm}</td></tr>`).join('') + '</table>';
+      list.map(c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}${resized(c)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td><td class="num">${c.depth_mm}</td></tr>`).join('') + '</table>';
   });
   $('cabinets').innerHTML = h; $('cabCount').textContent = n + ' cabinets';
 
