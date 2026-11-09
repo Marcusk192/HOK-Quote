@@ -119,6 +119,19 @@ def is_corner_unit(cabinet: dict) -> bool:
     return "cnr" in text or "corner" in text
 
 
+def is_blind_corner(cabinet: dict) -> bool:
+    """
+    Only blind corners (e.g. BCD 90/45 "900 Cnr D/Line Base 450 Door")
+    need the 1.5m corner filler. Units that go round the corner, like
+    L-shaped (BCSH) and diagonal (WDC) corners, don't (confirmed with
+    Marcus).
+    """
+    if not is_corner_unit(cabinet):
+        return False
+    text = f"{cabinet['code']} {cabinet['description']}".lower()
+    return not ("l' shaped" in text or "l shaped" in text or "l\" shaped" in text or "diagonal" in text or "diag " in text)
+
+
 def top_face_area(element) -> float:
     """
     True plan (footprint) area of a flat slab, in m^2, computed from
@@ -413,6 +426,9 @@ def lookup_fronts(cabinet: dict):
 
 
 TRIM_STOCK_LENGTH_MM = 3000
+FILLER_MAX_WIDTH_MM = 150   # narrower "panels" are fillers, cut from kickboard
+SPLASHBACK_Z_MIN_MM = 850    # bottom edge at worktop height = splashback
+SPLASHBACK_Z_MAX_MM = 960
 L_CORNER_LEG_DEDUCTION_MM = 585   # L-shaped corner door = leg size - 585
 WARDROBE_HEIGHT_MM = 2240         # 2250 tall = wardrobe height -> one full door
 WORKTOP_STOCK_LENGTH_MM = 4050
@@ -845,6 +861,7 @@ def parse_ifc(path: str) -> dict:
                             "width_mm": round(b["w"] * 1000),
                             "depth_mm": round(b["d"] * 1000),
                             "height_mm": round(b["h"] * 1000),
+                            "z0_mm": round(b["z0"] * 1000),
                         }
                         parts = None
                         if not is_corner_unit(cab) and "panel" not in cab["description"].lower() \
@@ -858,7 +875,7 @@ def parse_ifc(path: str) -> dict:
                         else:
                             cab = correct_width_depth(cab)
                         cabinets.append(cab)
-                        if is_corner_unit(cab):
+                        if is_blind_corner(cab):
                             corner_filler_count += 1
                     else:  # IfcBuildingElementProxy
                         dims = sorted([b["w"], b["d"], b["h"]])
@@ -943,6 +960,31 @@ def parse_ifc(path: str) -> dict:
                 "source": "confirmed" if confirmed else "generic_estimate",
             })
 
+    # Splashbacks: sheet pieces that sit on the worktop (bottom edge at
+    # worktop height) rather than standing on the floor or hanging with
+    # the wall units. Confirmed on Brian Skully's job: four MSM 19/90
+    # sheet pieces at 900mm off the floor, 515-680 high, are the
+    # splashback, not end panels.
+    def is_splashback(cab):
+        z0 = cab.get("z0_mm")
+        return z0 is not None and SPLASHBACK_Z_MIN_MM <= z0 <= SPLASHBACK_Z_MAX_MM and cab["height_mm"] <= 1000
+    splashbacks = []
+    for cab in [c for c in groups["Panel"] if is_splashback(c)]:
+        groups["Panel"].remove(cab)
+        n = normalize_panel(cab)
+        splashbacks.append({"code": cab["code"], "description": cab["description"],
+                            "width_mm": n["face_width_mm"], "height_mm": n["height_mm"], "thickness_mm": n["thickness_mm"]})
+    # Fillers: anything modelled as a panel but under 150mm across the
+    # face is a filler strip, cut from kickboard stock (confirmed with
+    # Marcus), so its length goes onto the kickboard total.
+    fillers = []
+    for cab in [c for c in groups["Panel"] if normalize_panel(c)["face_width_mm"] < FILLER_MAX_WIDTH_MM]:
+        groups["Panel"].remove(cab)
+        n = normalize_panel(cab)
+        fillers.append({"code": cab["code"], "description": cab["description"],
+                        "width_mm": n["face_width_mm"], "length_mm": n["height_mm"]})
+    if fillers:
+        trim_cutting["Kickboard"] = summarize_cutting(kickboard_lengths + [f["length_mm"] for f in fillers])
     panels_with_order = [{**cab, "panel_order": suggest_panel_order(cab)} for cab in groups["Panel"]]
 
     return {
@@ -955,6 +997,9 @@ def parse_ifc(path: str) -> dict:
             "doors": doors,
             "doors_not_catalogued": sorted(set(not_catalogued)),
             "panels": panels_with_order,
+            "splashbacks": splashbacks,
+            "fillers": fillers,
+            "splashback_area_m2": round(sum(x["width_mm"] * x["height_mm"] for x in splashbacks) / 1e6, 2),
             "trim_cutting": trim_cutting,
             "worktop_area_m2": worktop_area_m2,
             "worktop_cutting": worktop_cutting,
