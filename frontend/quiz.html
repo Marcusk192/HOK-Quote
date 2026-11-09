@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fitter's Test — House of Kitchens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9ECE9; --surface:#FFFFFF; --ink:#1D2B2A; --muted:#5B6866; --line:#C3CBC8;
+  --tape:#F4C21B; --tape-ink:#2A2310; --right:#2E7D4F; --right-bg:#E3F2E8; --wrong:#B8352B; --wrong-bg:#F8E4E1;
+  --front:#DCE3E0; --plinth:#9FAAA6; --metal:#B9C2C0; --top:#6E5B45;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#131A19; --surface:#1D2726; --ink:#E6ECEA; --muted:#9AA7A4; --line:#3A4946;
+  --right:#6CC593; --right-bg:#1C3326; --wrong:#F08A7F; --wrong-bg:#3A2220; --front:#2C3A38; --plinth:#4A5856; --metal:#6F7B79; --top:#A88B66; } }
+:root[data-theme="dark"]{ --bg:#131A19; --surface:#1D2726; --ink:#E6ECEA; --muted:#9AA7A4; --line:#3A4946;
+  --right:#6CC593; --right-bg:#1C3326; --wrong:#F08A7F; --wrong-bg:#3A2220; --front:#2C3A38; --plinth:#4A5856; --metal:#6F7B79; --top:#A88B66; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 17px/1.5 Barlow,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:660px;margin:0 auto;padding:16px 16px 56px}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-weight:700;line-height:1.1;margin:0}
+h1{font-size:46px} h2{font-size:28px;margin:30px 0 6px} h3{font-size:22px;margin:22px 0 8px}
+h2 small{font:500 15px Barlow,Arial,sans-serif}
+p{margin:0 0 12px} .muted{color:var(--muted)} .small{font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
+button[disabled]{cursor:default}
+
+.tape{position:relative;height:44px;border-radius:4px;background:var(--tape);color:var(--tape-ink);overflow:hidden;margin:6px 0 16px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
+.tape.thin{height:34px;margin:10px 0 0}
+.tape::before{content:"";position:absolute;inset:0 0 auto 0;height:14px;background:repeating-linear-gradient(90deg,var(--tape-ink) 0 1px,transparent 1px 10px),repeating-linear-gradient(90deg,var(--tape-ink) 0 2px,transparent 2px 50px);background-size:auto 8px,auto 14px;background-repeat:repeat-x;opacity:.75}
+.tape .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(42,35,16,.16);transition:width .4s ease}
+.tape .mark{position:absolute;top:0;bottom:0;width:3px;background:#B8352B;transition:left .4s ease}
+.tape .read{position:absolute;right:10px;bottom:4px;font:700 18px/1 "Barlow Condensed",Arial,sans-serif}
+
+.hero{padding:14px 0 4px}
+label.field{display:block;margin:14px 0 16px} label.field span{display:block;font-weight:600;margin-bottom:6px}
+input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit}
+
+.rank{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 14px 12px;margin:0 0 18px}
+.rankhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.rankhead small{display:block;color:var(--muted);font-size:14px}
+.rankhead b{font:700 30px/1 "Barlow Condensed",Arial,sans-serif}
+.xptotal{font:700 22px/1 "Barlow Condensed",Arial,sans-serif}
+
+.big{display:block;width:100%;text-align:left;border:0;border-radius:8px;padding:18px;background:var(--ink);color:var(--bg);margin-bottom:10px}
+.big.alt{background:var(--surface);color:var(--ink);border:2px solid var(--ink)}
+.big strong{display:block;font:700 26px/1.1 "Barlow Condensed",Arial,sans-serif}
+.big span{opacity:.85;font-size:15px}
+
+.topics{display:grid;gap:8px;margin-top:10px}
+.topic{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.topic b{font-weight:600} .topic small{display:block;color:var(--muted);font-size:14px}
+.st span,.stars span{color:var(--line);font-size:20px} .st span.on,.stars span.on{color:var(--tape)}
+.stars{margin:4px 0 10px} .stars span{font-size:40px}
+
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px}
+.badge{display:flex;gap:10px;align-items:center;padding:10px;border:1px dashed var(--line);border-radius:8px;opacity:.6}
+.badge.got{opacity:1;border-style:solid;background:var(--surface)}
+.badge.fresh{border-color:var(--tape);box-shadow:0 0 0 2px var(--tape)}
+.badge .medal{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--surface);font-size:18px}
+.badge.got .medal{background:var(--tape);color:var(--tape-ink)}
+.badge b{display:block;font-weight:600;font-size:15px} .badge small{display:block;color:var(--muted);font-size:13px;line-height:1.3}
+
+.hud{display:flex;align-items:center;gap:12px;margin:4px 0 6px}
+.hats{display:flex;gap:4px;color:var(--tape)} .hat{width:28px;height:19px} .hat.lost{color:var(--line)}
+.streak{font:600 15px Barlow,Arial,sans-serif;color:var(--muted)} .streak.hot{color:var(--wrong);font-weight:700}
+.xp{margin-left:auto;font:700 20px "Barlow Condensed",Arial,sans-serif}
+.clock{font:700 26px "Barlow Condensed",Arial,sans-serif}
+.quit{background:none;border:0;color:var(--muted);font-size:15px;text-decoration:underline;padding:4px}
+.timebar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:4px 0 14px}
+.timebar div{height:100%;background:var(--tape);transition:width 1s linear}
+
+.tagrow{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.kind{font:700 14px/1 "Barlow Condensed",Arial,sans-serif;padding:6px 9px;border-radius:4px;background:var(--ink);color:var(--bg);letter-spacing:.02em}
+.k-diagram,.k-spot{background:var(--tape);color:var(--tape-ink)} .k-build,.k-seq{background:var(--right);color:var(--surface)}
+.tag{font-size:14px;font-weight:600;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.question{font:600 21px/1.3 Barlow,Arial,sans-serif;margin:0 0 14px}
+.hint{color:var(--muted);font-size:15px;margin-top:-6px}
+.opts{display:grid;gap:9px} .opts.grid2{grid-template-columns:1fr 1fr}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;padding:13px 14px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-size:17px;line-height:1.35}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font:700 14px/1 "Barlow Condensed",Arial,sans-serif}
+.opt:hover:not([disabled]){border-color:var(--ink)}
+.opt.right,.step.right{border-color:var(--right);background:var(--right-bg)} .opt.right .k{background:var(--right);border-color:var(--right);color:var(--surface)}
+.opt.wrong,.step.wrong{border-color:var(--wrong);background:var(--wrong-bg)} .opt.wrong .k{background:var(--wrong);border-color:var(--wrong);color:var(--surface)}
+.opt.dim{opacity:.5}
+
+.calc{display:flex;gap:8px;align-items:center}
+.calc input{flex:1;min-width:0;font:700 30px/1 "Barlow Condensed",Arial,sans-serif;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.calc input.right{border-color:var(--right);background:var(--right-bg)} .calc input.wrong{border-color:var(--wrong);background:var(--wrong-bg)}
+.unit{font-weight:600;color:var(--muted)}
+.check{padding:14px 18px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);font:700 20px/1 "Barlow Condensed",Arial,sans-serif}
+.check[disabled]{opacity:.4}
+
+.drawwrap{display:flex;justify-content:center;margin:0 0 14px;background:var(--bg);border-radius:8px;padding:10px}
+svg.draw{width:100%;max-width:300px;height:auto;display:block}
+svg .dim{font:700 13px "Barlow Condensed",Arial,sans-serif;fill:var(--ink)} svg .dim.small{font-size:11px;fill:var(--muted)}
+svg .dimq{font:700 17px "Barlow Condensed",Arial,sans-serif;fill:#2A2310}
+
+.buildgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px;align-items:start}
+.bsvg{background:var(--bg);border-radius:8px;padding:8px}
+.bsvg svg{max-height:240px;margin:0 auto}
+.tiles{display:flex;flex-wrap:wrap;gap:6px}
+.tile{padding:10px 12px;border:2px solid var(--ink);border-radius:6px;background:var(--surface);font:700 19px/1 "Barlow Condensed",Arial,sans-serif;min-width:58px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;min-height:8px}
+.chip{padding:6px 9px;border:0;border-radius:14px;background:var(--front);font:600 14px Barlow,Arial,sans-serif}
+.used{font-size:15px;margin:6px 0 10px}
+.row2{display:flex;gap:8px} .row2>*{flex:1}
+.ghost.sm{padding:12px;font-size:18px}
+
+.placed{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:6px}
+.slot{border:2px dashed var(--line);border-radius:8px;padding:12px;color:var(--muted);font-size:15px}
+.pool{display:grid;gap:6px}
+.step{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:12px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-size:16px;line-height:1.3}
+.step.on{border-color:var(--ink)}
+.step .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font:700 14px "Barlow Condensed",Arial,sans-serif}
+
+.scenewrap{background:var(--bg);border-radius:8px;padding:6px;overflow-x:auto}
+svg.scene{width:100%;min-width:320px;height:auto;display:block}
+svg.scene .cab{fill:var(--plinth)} svg.scene .front{fill:var(--front);stroke:var(--ink);stroke-width:.8}
+svg.scene .plinth{fill:var(--plinth)} svg.scene .top{fill:var(--top)} svg.scene .metal{fill:var(--metal)}
+svg.scene .hit{cursor:pointer} svg.scene .hit:hover .front{fill:var(--line)}
+svg.scene .isfault .front,svg.scene .isfault .top,svg.scene .isfault rect{stroke:var(--right);stroke-width:2.2}
+svg.scene .isfault .front{fill:var(--right-bg)}
+svg.scene .miss .front,svg.scene .miss .top{stroke:var(--wrong);stroke-width:2.2;fill:var(--wrong-bg)}
+
+.why{margin-top:16px;border-left:4px solid var(--tape);padding:4px 0 4px 14px}
+.whyhead{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.why.ok h3{color:var(--right);margin:0} .why.bad h3{color:var(--wrong);margin:0}
+.gain{font:700 20px "Barlow Condensed",Arial,sans-serif;color:var(--right)} .lost{font:600 15px Barlow,Arial,sans-serif;color:var(--wrong)}
+.ans{font-weight:600;color:var(--right)}
+.next{margin-top:18px;width:100%;padding:16px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);font:700 22px/1 "Barlow Condensed",Arial,sans-serif}
+.ghost{width:100%;padding:14px;border:2px solid var(--ink);border-radius:8px;background:transparent;font:700 20px/1 "Barlow Condensed",Arial,sans-serif}
+.row{display:grid;gap:10px;margin-top:24px}
+
+.big-h{font-size:42px;margin:4px 0 6px}
+.scoreline{display:flex;align-items:baseline;gap:16px}
+.score{font:700 80px/0.95 "Barlow Condensed",Arial,sans-serif}
+.xpwin{font:700 30px "Barlow Condensed",Arial,sans-serif;color:var(--right)}
+.promo{background:var(--tape);color:var(--tape-ink);border-radius:8px;padding:12px 14px;margin:10px 0 14px;font-size:18px}
+.miss{padding:12px 0;border-bottom:1px solid var(--line)} .miss p{margin:4px 0}
+
+.flash{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 18px);transform:translateX(-50%);background:var(--tape);color:var(--tape-ink);font:700 22px "Barlow Condensed",Arial,sans-serif;padding:10px 18px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:pop 1.4s ease forwards;z-index:9}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-10px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+.pulse-ok{box-shadow:0 0 0 3px var(--right)} .pulse-bad{box-shadow:0 0 0 3px var(--wrong)}
+.flagq{margin-left:auto;background:none;border:0;color:var(--muted);font-size:14px;text-decoration:underline;padding:4px}
+.flags{padding-left:22px;margin:8px 0 12px} .flags li{margin:0 0 8px} .flags small{display:block;color:var(--muted);font-size:13px}
+.foot{font-size:14px;color:var(--muted);margin-top:30px}
+.reset{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:14px;padding:0}
+@media (max-width:420px){ .opts.grid2{grid-template-columns:1fr} .buildgrid{grid-template-columns:1fr} h1{font-size:40px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* Scroll inside its own page, so it still scrolls in the locked Wix embed */
+html{height:100%;overflow:hidden}
+body{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const TOPICS = {
+  setout:"Measuring & setting out",
+  units:"Our cabinet spec",
+  install:"Carcasses & installation",
+  hinges:"Hinges, drawers & adjustment",
+  doors:"Door make-ups & door care",
+  panels:"Panels, plinths & mouldings",
+  tops:"Worktops",
+  ovens:"Appliance & extractor housings",
+  apps:"Appliances & services",
+  safety:"Safety & the customer's home"
+};
+
+const Q = [
+{t:"setout",q:"What's the minimum leg height we work to?",
+ o:["100mm","120mm","150mm","170mm"],a:2,
+ w:"150mm. Legs adjust, but 150 is the height to hold. Never go below it, because that's what keeps the plinth line and every height above it right."},
+{t:"setout",q:"The floor falls away across the kitchen. Where do you set your 150mm leg height?",
+ o:["At the lowest point of the floor","At the highest point of the floor","In the middle of the run","Wherever you start fitting"],a:1,
+ w:"Set 150 at the highest point. Every other leg then gets wound up to that level, so no leg ends up below the 150 minimum."},
+{t:"setout",q:"150mm legs, 720mm carcass, 38mm worktop. What's the finished worktop height?",
+ o:["870mm","890mm","908mm","950mm"],a:2,
+ w:"150 + 720 + 38 = 908mm. Top of the carcass sits at 870, which is also the height you cut base end panels to."},
+{t:"setout",q:"What worktop thicknesses can you come across?",
+ o:["38mm only", "15, 20, 30, 38 and 40mm", "30 and 40mm only", "Any thickness up to 100mm"],a:1,
+ w:"15, 20, 30, 38 and 40mm. The finished height changes with each, so never assume 38."},
+{t:"setout",q:"150mm legs, 720mm carcass, 20mm worktop. Finished worktop height?",
+ o:["870mm", "890mm", "908mm", "910mm"],a:1,
+ w:"150 + 720 + 20 = 890mm. With a 40mm top it's 910."},
+{t:"setout",q:"Setting out the wall units. Where do you measure from?",
+ o:["Up from the top of the worktop", "Down from the top of the larder or oven housing", "Down from the ceiling", "Up from the floor at any point"],a:1,
+ w:"Measure down from the top of the tall units. Worktops come in 15, 20, 30, 38 and 40mm, so measuring up from the worktop puts the wall units out of line with the tall units."},
+{t:"setout",q:"A 1970mm tall larder sits on 150mm legs. How high is the top of the larder off the floor?",
+ o:["1970mm","2020mm","2120mm","2170mm"],a:2,
+ w:"150 + 1970 = 2120mm. That's the line the wall unit tops need to hit."},
+{t:"setout",q:"Wall units (720 high) line through with the top of the larder at 2120mm. Where's the underside of the wall units?",
+ o:["1300mm","1400mm","1450mm","1500mm"],a:1,
+ w:"2120 − 720 = 1400mm off the floor. Always measure down from the top of the larder or oven housing to set the wall units."},
+{t:"setout",q:"Worktop top at 908mm, underside of wall units at 1400mm. What's the gap between them?",
+ o:["392mm","450mm","492mm","550mm"],a:2,
+ w:"1400 − 908 = 492mm with a 38mm top. With a different worktop thickness that gap changes, which is why wall unit height is set by measuring down from the tall units, not up from the worktop."},
+{t:"setout",q:"Why draw a level datum line around the room before fitting?",
+ o:["For the tiler","So every height is measured from one level line, not from an uneven floor or ceiling","Only for wall units","To mark socket positions"],a:1,
+ w:"Floors and ceilings are rarely level. One datum gives you a true reference for base units, worktops, wall units and tall units."},
+{t:"setout",q:"Measuring the length of a wall for a unit run. Where do you measure?",
+ o:["Once, at floor level","At floor, worktop and wall unit height, and work to the smallest","Along the ceiling","At skirting height only"],a:1,
+ w:"Walls bow and lean. Measure at several heights and work to the tightest, or the run won't fit where it matters."},
+{t:"setout",q:"Quickest way to check two walls meet at a true 90°?",
+ o:["Eyeball the skirting","3-4-5: 600 on one wall, 800 on the other, diagonal should be 1000","Level on each wall","Measure the ceiling"],a:1,
+ w:"Any multiple of 3-4-5 works. If the diagonal's off, the corner is out and you'll need to allow for it in the worktop and fillers."},
+{t:"setout",q:"A run finishes against a wall that isn't plumb. What do you do?",
+ o:["Push the unit tight and leave the gap","Scribe a filler to the wall","Silicone the gap","Cut the carcass"],a:1,
+ w:"Scribe a filler to follow the wall. It hides the gap and gives doors and handles room to open."},
+{t:"install",q:"How do you check a carcass is square?",
+ o:["Measure width top and bottom","Both diagonals should match","Put a level on it","Look at the door gaps later"],a:1,
+ w:"Equal diagonals means square. An out-of-square carcass gives doors you'll never get right with hinge adjustment."},
+{t:"install",q:"Where do you normally start fitting a run of base units?",
+ o:["Whichever end is nearest the door","From the corner unit or fixed point, working outwards","The middle","Wherever the sink goes"],a:1,
+ w:"Start from the corner or the fixed point (tall unit, appliance space) and work out. Errors then end up at the open end where a filler can take them."},
+{t:"install",q:"Base units in a run are joined together how?",
+ o:["Only to the wall","Clamped flush at the front and screwed through the sides with connectors","Glued","Held by the worktop"],a:1,
+ w:"Clamp the fronts flush, then connect through the sides. Joined units act as one run and keep the door gaps even."},
+{t:"install",q:"At an L-shaped corner, why fit a filler between the corner unit and the next unit?",
+ o:["To fill space only","So doors and handles on the two runs can open without hitting each other","To stiffen the corner","It's optional"],a:1,
+ w:"Without a filler, handles and doors clash in the corner. Check the handle projection when you size it."},
+{t:"install",q:"What size is a secret corner base unit?",
+ o:["600 × 600 with a 300 door","900 deep into the corner with a 450 door","1000 × 1000 with two 500 doors","900 × 900 with two 300 doors"],a:1,
+ w:"Secret corner base is 900 deep into the corner with a 450 door. The pull-out mechanism inside uses the blind corner space."},
+{t:"install",q:"What makes up a Norwegian corner base unit?",
+ o:["600 × 600, one 300 door","900 × 900, two 300 doors","900 deep, one 450 door","1000 × 1000, two 400 doors"],a:1,
+ w:"900 × 900 L-shaped carcass with two 300 doors, one on each face of the corner."},
+{t:"install",q:"Two corner wall unit options: what are they?",
+ o:["45° corner 600 × 600 with a 300 door, or Norwegian 600 × 600 with two 300 doors","Both 900 × 900","45° corner 900 × 900 with a 450 door only","Only straight wall units in corners"],a:0,
+ w:"45° corner wall is 600 × 600 with one 300 door on the angled face. Norwegian corner wall is 600 × 600 with two 300 doors."},
+{t:"install",q:"Standard widths for base and wall units?",
+ o:["300, 400, 500, 600, 800, 900, 1000","250, 450, 650, 850","Any width to the mm","600 only"],a:0,
+ w:"300, 400, 500, 600, 800, 900 and 1000. Anything left over is taken up with fillers."},
+{t:"install",q:"Wall units are hung on adjustable brackets. What comes next?",
+ o:["Doors on straight away","Adjust height and depth to the line, then screw the units together through the sides","Silicone them to the wall","Nothing"],a:1,
+ w:"Adjust to your datum and bring the fronts into line, then connect them through the sides so the run acts as one."},
+{t:"install",q:"Hanging wall units on a plasterboard stud wall. Right approach?",
+ o:["Brown plugs into the board","Fix into studs or noggins, or use a rated heavy-duty cavity fixing","Glue the rail on","Two screws per unit is enough"],a:1,
+ w:"Plasterboard alone won't hold a loaded wall unit. Find the studs, get noggins in if you can, or use a proper cavity fixing."},
+{t:"install",q:"Why must tall units always be fixed back to the wall?",
+ o:["Optional if level","So they can't tip forward when doors or pull-outs are loaded","To stop squeaks","Appearance"],a:1,
+ w:"A loaded larder with an open door can pull forward. Always fix them back."},
+{t:"install",q:"You've cut the back and base of the sink unit for pipes. What next?",
+ o:["Nothing, it's hidden","Seal every cut edge so water can't get into the board","Paint it","Tape the holes"],a:1,
+ w:"Cut board soaks up water and swells. The sink unit is where leaks show up first."},
+{t:"install",q:"Standard carcass shelving: 720 base, 720 wall, 1970 larder?",
+ o:["1, 1, 3 shelves","1, 2, 5 shelves","2, 2, 4 shelves","0, 2, 5 shelves"],a:1,
+ w:"Base has 1 shelf, wall has 2, and the 1970 × 570 larder has 5. Count them in when the delivery arrives."},
+{t:"hinges",q:"Standard cup hole size for a concealed kitchen hinge?",
+ o:["26mm","35mm","40mm","45mm"],a:1,
+ w:"35mm. Check the boring distance from the door edge for the hinge you're using, and always use a jig."},
+{t:"hinges",q:"When doors are ordered pre-drilled, where do the hinge holes go as standard?",
+ o:["50mm from top and bottom", "100mm from top and bottom", "150mm from top and bottom", "Centred on the door"],a:1,
+ w:"100mm from the top and 100mm from the bottom. On doors over 895mm you have to give the drilling positions for any extra hinges."},
+{t:"hinges",q:"You're ordering a tall made-to-measure door pre-drilled. What must you add to the order?",
+ o:["Nothing", "The positions of the extra hinge holes, since only top and bottom are standard", "The handle size", "The carcass colour"],a:1,
+ w:"Only the top and bottom holes are standard. Doors over 895mm need the extra hinge positions written on the order."},
+{t:"hinges",q:"How many hinges on a 715mm base door?",
+ o:["1","2","3","4"],a:1,
+ w:"Two. Keep them the same distance from the top and bottom on every door so the run looks consistent."},
+{t:"hinges",q:"How many hinges on a 1965mm larder door in wood, vinyl or painted MDF?",
+ o:["2", "3", "4", "5"],a:2,
+ w:"Four. An aluminium frame door the same height only needs 3, because aluminium is much stiffer and won't warp. Wood-based doors need the extra hinge to keep them straight."},
+{t:"hinges",q:"Why does an aluminium frame door get away with fewer hinges than a wood-based door the same height?",
+ o:["It's lighter", "Aluminium is far stiffer and resists warping", "It uses bigger hinges", "It doesn't, they're the same"],a:1,
+ w:"Wood-based doors can bow over their height, so the extra hinge holds them straight. Aluminium frames stay true."},
+{t:"hinges",q:"What gaps do the door matrices allow between fronts?",
+ o:["2mm everywhere", "3mm between doors side by side, 5mm between fronts stacked one above the other", "5mm side by side, 3mm stacked", "No gap"],a:1,
+ w:"3mm horizontally between neighbouring doors, 5mm vertically between stacked fronts. That's why the drawer make-ups add up to the 715 door line."},
+{t:"hinges",q:"Two doors side by side: gap is wider at the top than the bottom. Which adjustment?",
+ o:["Height","Side-to-side on the hinges","Depth","Re-drill"],a:1,
+ w:"Side adjustment on the top or bottom hinge tilts the door until the gap runs parallel. Height lines up the tops; depth brings the door in or out."},
+{t:"hinges",q:"A door has internal drawers or a pull-out behind it. What hinge do you need?",
+ o:["Standard 110° hinge","A wide-angle hinge (around 155–170°) so the door swings clear of the internal fittings","No hinge, use a stay","A lift-up hinge"],a:1,
+ w:"A standard hinge leaves the door partly across the opening and the drawers catch it. Wide-angle lets the door open clear."},
+{t:"hinges",q:"Drawer fronts don't line through with the doors beside them. How do you fix it?",
+ o:["Refit the runners","Use the front fixing adjusters on the drawer box to move the front","Pack behind with card","Plane the front"],a:1,
+ w:"Drawer boxes have adjusters for height and side. Set the fronts to line through with the doors and keep the 2–3mm gaps."},
+{t:"hinges",q:"Drilling handle holes through a finished door. How do you stop the back splitting out?",
+ o:["Drill fast","Jig, plus a scrap block clamped behind the hole","Drill from the back","Bigger bit"],a:1,
+ w:"Jig for accuracy, backing block for a clean exit. A split door means ordering another."},
+{t:"hinges",q:"Door swap job: how do you make sure the new doors hang on the existing hinges?",
+ o:["Drill them on site by eye","Measure the existing hinge cup positions from the top and bottom edge and order the doors drilled to match","Fit new hinges anywhere","Use the old doors as a template after fitting"],a:1,
+ w:"Measure every door and record hinge positions. Ordering them pre-drilled saves time and gets consistent holes."},
+{t:"hinges",q:"Why inspect every door before you drill it?",
+ o:["No reason", "Once a door is drilled for hinges, the supplier won't replace it for damage or faults", "Drilling voids the carcass warranty", "So you can count them"],a:1,
+ w:"Check for damage and defects first. A drilled door with a fault is your cost, not the supplier's."},
+{t:"doors",q:"What door height goes on a 720mm base or wall carcass?",
+ o:["695mm","715mm","720mm","730mm"],a:1,
+ w:"715mm. The door is slightly shorter than the carcass so it clears the worktop and gives a clean shadow line."},
+{t:"doors",q:"A 600mm carcass takes one door. Roughly what width is it?",
+ o:["570mm","595–597mm","600mm","605mm"],a:1,
+ w:"About 595–597mm depending on the range. Doors are made a few mm under the carcass width so neighbouring doors have a gap."},
+{t:"doors",q:"A 1000mm base unit takes two doors. What width is each?",
+ o:["447mm","495–497mm","500mm","597mm"],a:1,
+ w:"Half the carcass less the gap, so around 495–497mm each. An 800 takes two 395–397s, a 900 takes two 445–447s."},
+{t:"doors",q:"Which of these is NOT a standard door make-up for a 1970 larder?",
+ o:["One 1965 door", "1245 + 715", "980 + 980", "1060 + 895"],a:3,
+ w:"The 1970 larder takes a single 1965, 1245 + 715 (either way up) or 980 + 980. 1060 + 895 isn't on the matrix."},
+{t:"doors",q:"A 2150 tall larder with two doors. Which pair works?",
+ o:["1245 + 715","715 + 1425","895 + 895","1965 + 140"],a:1,
+ w:"715 + 1425 (the 720 and 1430 line) = 2140 plus the gap. The lower door lines through with the base unit doors. 1245 + 895 is the other option."},
+{t:"doors",q:"A 2150 larder on 150mm legs. How high is the top off the floor?",
+ o:["2150mm","2250mm","2300mm","2350mm"],a:2,
+ w:"150 + 2150 = 2300mm. Wall units lined through with it are the 900-high ones, which puts their underside at 1400, the same line as a 1970 larder with 720 wall units."},
+{t:"doors",q:"Which fronts make up a 4-drawer base unit?",
+ o:["4 × 140", "4 × 175", "175 + 175 + 355", "140 + 175 + 175 + 283"],a:1,
+ w:"4 × 175 = 700, plus three 5mm gaps = 715. The drawer line then matches the doors."},
+{t:"doors",q:"Which fronts make up a standard 3-drawer base unit?",
+ o:["140 + 283 + 283", "175 + 283 + 283", "140 + 355 + 355", "283 + 283 + 283"],a:0,
+ w:"140 + 283 + 283 = 706, plus two 5mm gaps ≈ 715, lining up with the doors."},
+{t:"doors",q:"Which fronts make up a 2-drawer pan drawer unit?",
+ o:["283 + 283", "355 + 355", "570 + 140", "140 + 283"],a:1,
+ w:"355 + 355 = 710, plus one 5mm gap = 715."},
+{t:"doors",q:"A base unit with a drawer over a cupboard. What fronts?",
+ o:["140 drawer + 570 door", "175 drawer + 570 door", "140 drawer + 715 door", "283 drawer + 355 door"],a:0,
+ w:"140 + 570 = 710, plus a 5mm gap = 715."},
+{t:"doors",q:"In a 1970 kitchen the wall units are 720 cabinets. In a 2150 kitchen they're usually what?",
+ o:["720 cabinets with 715 doors", "900 cabinets with 895 doors", "1000 cabinets", "575 cabinets"],a:1,
+ w:"The 2150 matrix uses 900 wall cabinets (895 doors) so the tops line through with the 2150 tall units. On 150 legs the underside still lands at 1400."},
+{t:"doors",q:"What door goes on a bridging unit over a fridge freezer in a 1970 kitchen?",
+ o:["715", "355", "283", "570"],a:2,
+ w:"Bridging units in the 1970 matrix take 283 doors. In a 2150 kitchen it's 355 or 283."},
+{t:"doors",q:"A dresser unit in a 1970 kitchen. What fronts?",
+ o:["1245 door", "1060 door with a 140 drawer below", "980 + 140", "715 + 283"],a:1,
+ w:"1060 door over a 140 drawer, sitting on the worktop line."},
+{t:"doors",q:"What front goes on a Belfast sink unit in the 2150 matrix?",
+ o:["715 door", "570 door", "450 front", "283 front"],a:2,
+ w:"The Belfast sink sits proud at the top, so the front below it is a 450."},
+{t:"doors",q:"Front sizes can differ slightly between door suppliers (e.g. a 110 or 115 blank). What do you do?",
+ o:["Assume they're all the same", "Check the door matrix for the supplier and range you're ordering", "Order the bigger one and trim it", "Ask the customer"],a:1,
+ w:"Each supplier's matrix is the reference. Don't carry sizes from one supplier's list to another without checking."},
+{t:"doors",q:"A door size isn't in the stock range. What do you order?",
+ o:["Nearest stock size and cut it down","Made-to-measure, priced by height × width","A different style","Use a filler"],a:1,
+ w:"Made-to-measure. Vinyl-wrapped and laser-edge doors can never be cut down on site: the edge seal is gone and they'll fail. If a size falls between the grid sizes, it's priced at the next size up."},
+{t:"doors",q:"Vinyl-wrapped doors are going beside a built-under oven. What do you fit?",
+ o:["Nothing","Heat deflector strips to protect the door edges","Extra hinges","A thicker plinth"],a:1,
+ w:"Heat and steam lift vinyl off the board. Fit deflectors beside ovens and keep kettles and steam away from door edges. Tell the customer too."},
+{t:"doors",q:"Apart from ovens, what else damages door and moulding edges with heat or steam?",
+ o:["Nothing", "Kettles and toasters on the worktop under wall units", "Fridges", "Lighting only"],a:1,
+ w:"Doors and mouldings can't take direct heat or steam. Tell the customer to keep kettles and toasters out from under the wall units and pelmet."},
+{t:"doors",q:"When do you remove the protective film from gloss doors, and when can they be cleaned?",
+ o:["Leave it on for a month", "Remove it as soon as fitting is finished, then no wiping for 10 days", "Remove before fitting and polish straight away", "Never remove it"],a:1,
+ w:"Off as soon as the job's done. Gloss needs 10 days to cure, and the static from peeling the film pulls in grit, so warm water and a soft cloth only, no abrasives or solvents."},
+{t:"doors",q:"Timber doors are going into a new extension that's just been plastered. What's the risk?",
+ o:["None", "Moisture in the room makes the timber move, cracking paint along the joints", "The colour fades", "They won't fit the hinges"],a:1,
+ w:"Timber takes up and gives off moisture. New builds and fresh plaster need to dry out first or the joints crack."},
+{t:"doors",q:"A woodgrain vinyl drawer front 140mm high. Which way does the grain run?",
+ o:["Vertical", "Horizontal", "Diagonal", "Whatever you order"],a:1,
+ w:"Woodgrain runs horizontally on fronts from 100 to 282mm high, and vertically from 283mm up. Horizontal grain on taller fronts has to be specified on the order."},
+{t:"doors",q:"The painted solid ash shaker doors come 'primed and sanded'. What does that mean for you?",
+ o:["Ready to fit as they are","They need painting (all faces and edges) before they're finished","They're a vinyl door","They can't be drilled"],a:1,
+ w:"Primed means undercoat only. They need painting, including edges and backs, so the timber is sealed and doesn't move."},
+{t:"doors",q:"Why does door thickness matter when fitting (e.g. 18mm vinyl shaker vs 22mm five-piece)?",
+ o:["It doesn't","Handle bolt length, hinge choice and clearances all change with thickness","Only for colour matching","It changes the carcass size"],a:1,
+ w:"Thicker doors need longer handle bolts and affect hinge setup and clearance at corners and beside end panels. Check before you start drilling."},
+{t:"doors",q:"What's different about fitting doors with an integrated J-profile handle?",
+ o:["Nothing","There are no handles to drill: the finger pull is formed into the door edge, so the top drawer and doors must be ordered with the profile in the right place","They need special hinges only","They only go on wall units"],a:1,
+ w:"The pull is part of the door. Get the profile position right on the order (top edge on base doors, top of each drawer front) because you can't add it after."},
+{t:"doors",q:"Customer wants glass-fronted wall units on made-to-measure frame doors. What do you need to know?",
+ o:["They come glazed", "MTM kitchen frames come unglazed, so glass has to be sorted separately", "Frames can't go on wall units", "They need special hinges only"],a:1,
+ w:"Some stock frames come pre-glazed, but MTM kitchen frames come unglazed. Check which you're ordering and allow for the glass."},
+{t:"doors",q:"MTM gloss, framed and angled doors cost more than standard matt. Why does that matter on site?",
+ o:["It doesn't","Any change of finish or shape after ordering costs money and time, so confirm finish and sizes before the order goes in","Only the office needs to know","Gloss fits differently"],a:1,
+ w:"Made-to-measure can't be returned. Double-check sizes, finish and hinge drilling before the order is placed."},
+{t:"panels",q:"Plinth comes 150mm high × 18mm, 3050mm long. How is it fitted?",
+ o:["Screwed to the floor","Cut to length, scribed to the floor if needed, and clipped to the legs","Glued to the carcass","Left loose"],a:1,
+ w:"Plinth clips onto the legs so it can be removed for access. Where the floor falls away, the legs are taller than 150 there, so check the plinth still covers the gap before you cut it."},
+{t:"panels",q:"Base end panel comes 910mm long. With 150 legs and a 720 carcass, what do you cut it to?",
+ o:["720mm","870mm","908mm","910mm, leave it"],a:1,
+ w:"150 + 720 = 870mm, floor to the underside of the worktop. Keep cut edges to the top where you can. If you scribe the bottom to the floor, give that cut edge two coats of PVA and seal it with silicone."},
+{t:"panels",q:"Tall end panel comes 2350mm. The larder top is at 2120mm. What do you do?",
+ o:["Fit it full length","Cut it to height and scribe the bottom to the floor","Cut it to 1970","Use two base panels"],a:1,
+ w:"Cut to 2120 (or up to the cornice if there is one). Any cut edge that ends up at floor level gets two coats of PVA and a silicone seal."},
+{t:"panels",q:"Where does the front edge of a decor end panel finish?",
+ o:["Flush with the carcass front","Flush with the face of the doors","Set back 20mm","Wherever it lands"],a:1,
+ w:"Bring it forward to line with the door faces so it covers the door edge and looks built-in."},
+{t:"panels",q:"What's the difference between cornice and pelmet?",
+ o:["Same thing","Cornice sits on top of the wall units; pelmet runs under them and hides the lighting","Cornice is for base units","Pelmet goes on the plinth"],a:1,
+ w:"Cornice finishes the top, pelmet (often a square bullnose moulding) finishes the underside and hides under-unit lights."},
+{t:"panels",q:"Cornice turns an external corner. How is it joined?",
+ o:["Butted","45° mitre, glued and pinned","Overlapped","Siliconed"],a:1,
+ w:"Mitre it at 45° and glue and pin. Cut test pieces first if the corner isn't square."},
+{t:"panels",q:"Plinth runs under an integrated dishwasher. What do you watch for?",
+ o:["Nothing","The door drops down, so the plinth must be cut or notched to let it open without catching","Seal it with silicone","Screw it on"],a:1,
+ w:"Open the door fully before you finish the plinth there. Fit the steam and water protection the appliance comes with too."},
+{t:"panels",q:"Integrated fridge freezer in a tall housing. What goes in the plinth in front of it?",
+ o:["Nothing","A ventilation grille","Extra legs","A kick-heater"],a:1,
+ w:"Integrated fridges need airflow in at the bottom and out at the top. The door matrix notes allow around 50mm for ventilation below and behind appliances. Block it and the compressor overworks."},
+{t:"tops",q:"Cutting a laminate worktop with a handheld circular saw. Which way up?",
+ o:["Good face up","Good face down","Doesn't matter","On edge"],a:1,
+ w:"A handheld circular saw cuts upwards, so the chipping is on the top face. Good side down, and tape the line."},
+{t:"tops",q:"Two round-front laminate worktops meet at a corner. How are they joined?",
+ o:["Butt them together and silicone","Masons mitre cut with a router and jig, with worktop bolts underneath","Screw down through the top","Glue only"],a:1,
+ w:"A round front can't be butted, so it needs a masons mitre. The worktop bolts underneath pull the two pieces tight together."},
+{t:"tops",q:"When do we fit worktop bolts underneath a joint?",
+ o:["On every worktop joint","Only on round-front worktops, where there's a masons mitre","Only on solid wood","Never"],a:1,
+ w:"Bolts only go in where a round-front worktop has a masons mitre. They sit in recesses routed underneath and pull the joint tight."},
+{t:"tops",q:"You're joining a masons mitre on a round-front worktop. What do you put along the joint before tightening the worktop bolts?",
+ o:["Nothing","Colour-matched sealant or joint compound","Wood glue on the top face","Masking tape"],a:1,
+ w:"Run colour-matched sealant along the joint so water can't get into the chipboard core, then tighten the bolts and wipe off what squeezes out before it sets."},
+{t:"tops",q:"Where should a worktop joint never land?",
+ o:["Over a base unit","At the sink, hob or over the dishwasher","In a corner","At the end of a run"],a:1,
+ w:"Water at the sink and steam from the dishwasher get into joints and blow them. Plan joints away from wet and hot areas."},
+{t:"tops",q:"Why seal sink and hob cut-out edges?",
+ o:["Looks","Water and steam swell the exposed chipboard","Stops the hob sliding","Helps silicone stick"],a:1,
+ w:"The core is chipboard. An unsealed cut-out swells and lifts the laminate."},
+{t:"tops",q:"How do you fix the worktop down onto the carcasses?",
+ o:["Screw through the top","Screw up from underneath through the brackets or rails, with screws short enough not to come through","Silicone only","Nails"],a:1,
+ w:"Up from underneath. Measure what you're screwing through plus the worktop thickness. One screw too long and the top is ruined."},
+{t:"tops",q:"A straight run is 4.2m long. How many 3.6m lengths do you order?",
+ o:["1","2","3","1.5"],a:1,
+ w:"4.2 ÷ 3.6 = 1.17, so 2 lengths. Always round up, and plan where the joint lands."},
+{t:"tops",q:"What goes on the underside of the worktop above the dishwasher?",
+ o:["Nothing","A moisture barrier / steam protection strip","Extra bracket","Insulation"],a:1,
+ w:"Steam comes out of the top of the dishwasher every cycle. Without protection the worktop edge swells."},
+{t:"tops",q:"Fitting a solid wood worktop. Which is correct?",
+ o:["Screw it tight all round","Expansion gap at walls, slotted fixings, oil every face including underneath and cut-outs","Oil the top only","Glue it down"],a:1,
+ w:"Timber moves. Give it room, let the fixings slide, and oil all faces or it will cup."},
+{t:"tops",q:"How far should a worktop overhang the door faces?",
+ o:["Flush","About 20–30mm","About 60mm","About 100mm"],a:1,
+ w:"About 20–30mm, enough to throw drips clear of the doors."},
+{t:"ovens",q:"A single oven goes under the worktop in a 600 base housing. What front fills the space?",
+ o:["140 drawer front", "115 blank front", "283 drawer front", "Nothing"],a:1,
+ w:"The matrix shows a 115 blank front with a built-under single oven. Other suppliers list it as a 110, so always check the matrix for the range you're ordering."},
+{t:"ovens",q:"The door matrices show apertures in brackets, e.g. (600). What does that figure mean?",
+ o:["The oven's exact size", "The gap between the door fronts above and below the appliance", "The carcass width", "The shelf depth"],a:1,
+ w:"It's the overall distance between the door fronts. Check it against the appliance's cut-out size in its manual."},
+{t:"ovens",q:"1970 tall single oven housing: 645 door above, 715 door below. What's the oven aperture?",
+ o:["530", "600", "675", "940"],a:1,
+ w:"645 / (600) / 715. The 715 lines through with the base doors."},
+{t:"ovens",q:"1970 tall single oven housing with a 715 door on top and a 570 door below. What's the aperture?",
+ o:["600", "645", "675", "940"],a:2,
+ w:"715 / (675) / 570. Other single oven make-ups are 715 over 283 + 283, and 570 over 715."},
+{t:"ovens",q:"1970 tall double oven housing with 495 doors top and bottom. What's the aperture?",
+ o:["675", "890", "940", "1060"],a:2,
+ w:"495 / (940) / 495. Other double oven make-ups: 570 / 450, 450 / 570, or 450 top with 283 + 283 below."},
+{t:"ovens",q:"1970 housing for a microwave, coffee maker or combi oven with a 715 door above and below. Aperture?",
+ o:["455", "485", "530", "600"],a:2,
+ w:"715 / (530) / 715. You can also split the bottom into 355 + 355 drawers."},
+{t:"ovens",q:"1970 housing for a single oven with a microwave above it, 450 door top, 355 bottom. Aperture?",
+ o:["940", "1060", "1110", "1155"],a:3,
+ w:"450 / (1155) / 355. Alternatives: 495 / (1110) / 355, or 450 / (1060) / 450."},
+{t:"ovens",q:"2150 tall double oven housing, 715 door on top. Which bottom front gives a (930) aperture?",
+ o:["450", "495", "570", "175 + 283"],a:1,
+ w:"715 / (930) / 495. Other 2150 double oven make-ups: 715 / (975) / 450, 715 / (962) / 175 + 283, 570 / (1010) / 570."},
+{t:"ovens",q:"2150 housing for a single oven with a microwave. What's the aperture in all the standard make-ups?",
+ o:["940", "1060", "1075", "1155"],a:2,
+ w:"(1075) every time, with 495 or 570 on top and 283 + 283, 570, 495 or 140 + 355 below."},
+{t:"ovens",q:"2150 microwave housing: 715 door, (565) aperture, then a 140 drawer. What goes below?",
+ o:["570", "715", "895", "283"],a:1,
+ w:"715 / (565) / 140 / 715, or split the bottom into 355 + 355."},
+{t:"ovens",q:"The aperture comes out bigger than the appliance needs. How do you close it down?",
+ o:["Pack with silicone", "Cut trimmer panels from a 596-wide door and set the appliance shelf at the right height", "Order a bigger oven", "Leave the gap"],a:1,
+ w:"Trim it out with panels cut from a matching 596 door, and get the shelf position right so the door fronts line up."},
+{t:"ovens",q:"70:30 integrated fridge freezer in a 1970 housing. What doors?",
+ o:["980 + 980", "1245 over 715", "715 over 1245", "1965 single"],a:1,
+ w:"1245 on the fridge, 715 on the freezer. A 50:50 takes 980 + 980."},
+{t:"ovens",q:"Integrated fridge freezer in a 2150 housing. What doors do we use?",
+ o:["175 panel + 1245 + 715","1430 (1425) door over a 720 (715) door","980 + 980","1965 single + 175 panel"],a:1,
+ w:"A 1430 door on the fridge (1425 actual) over a 720 (715) on the freezer. We don't add an extra panel on top: the taller door covers it."},
+{t:"ovens",q:"What size door goes on the extractor unit?",
+ o:["715","570","355","895"],a:1,
+ w:"570. The extractor unit is shorter than the wall units around it so there's clearance over the hob."},
+{t:"ovens",q:"A built-under double oven goes in a 600 base housing. What fronts do you need?",
+ o:["715 door","110 blank","None, the oven fills the housing height","140 + 570"],a:2,
+ w:"A built-under double oven is made to fill the full 720 base height, so there are no fronts. Check the model's height before ordering."},
+{t:"ovens",q:"What width is an oven housing?",
+ o:["500mm","600mm","800mm","900mm"],a:1,
+ w:"600mm, for base and tall oven housings alike."},
+{t:"ovens",q:"How wide should the extractor be compared to the hob?",
+ o:["Narrower is fine","At least as wide as the hob","Always 900","Doesn't matter"],a:1,
+ w:"At least the hob's width, wider if possible. A 600 hob needs a 600 extractor minimum, a 900 hob or range needs 900."},
+{t:"ovens",q:"An integrated (canopy) extractor for a 600 hob goes in what size wall unit?",
+ o:["300 wall unit","500 wall unit","600 wall unit","1000 wall unit"],a:2,
+ w:"A 600 wall unit to match the hob. The unit has no base, and the shelf is removed or cut for the ducting."},
+{t:"ovens",q:"A 900 hob with an integrated extractor. What size wall unit houses it?",
+ o:["600","800","900","1000"],a:2,
+ w:"900, matching the hob width. The extractor insert size must suit the unit, so check its spec."},
+{t:"ovens",q:"How high above the hob does the extractor go?",
+ o:["Always 500mm","Whatever height lines up with the wall units","The height set in the extractor and hob manuals","As high as possible"],a:2,
+ w:"The manual sets the minimum. Gas usually needs more height than induction. If lining up with the wall units puts the extractor too low, the manual wins."},
+{t:"ovens",q:"Ducting an extractor out through the wall. What gives the best extraction?",
+ o:["Long run with plenty of bends","Shortest run, fewest bends, full duct size the whole way","Reduce the duct to fit","Leave it unducted"],a:1,
+ w:"Every metre and every bend costs airflow. Keep it short and straight, and don't reduce the duct size below the extractor outlet."},
+{t:"ovens",q:"No ducting route to outside. How does the extractor work?",
+ o:["It can't be fitted","Recirculation, using charcoal filters","Duct it into the attic","Remove the filters"],a:1,
+ w:"Recirculation mode with charcoal filters. Tell the customer they need changing, and never duct into an attic or roof space."},
+{t:"ovens",q:"The customer wants a decorative canopy over a range cooker. What goes inside it?",
+ o:["Nothing","An extractor insert, ducted or recirculating","A wall unit","Lighting only"],a:1,
+ w:"A canopy is a housing. It holds an extractor insert, and the insert's size has to suit the canopy width."},
+{t:"apps",q:"Who connects a gas hob in Ireland?",
+ o:["The fitter","Any plumber","An RGII registered gas installer","The customer"],a:2,
+ w:"Gas work must be done by an RGII registered installer. Never touch gas connections."},
+{t:"apps",q:"Who wires a new cooker circuit or moves sockets?",
+ o:["The fitter if handy","A registered electrician (Safe Electric)","The supplier","The customer"],a:1,
+ w:"Electrical work goes to a registered electrician. Our install price excludes plumbing and electrics unless agreed."},
+{t:"apps",q:"Standard width of a full-size integrated dishwasher space?",
+ o:["450mm","500mm","600mm","650mm"],a:2,
+ w:"600mm full size, 450mm slimline. Check the appliance's height range against your 870mm under-worktop height."},
+{t:"apps",q:"What does 70:30 mean on an integrated fridge freezer?",
+ o:["70% freezer","70% fridge, 30% freezer","70cm wide","Energy rating"],a:1,
+ w:"70% fridge, 30% freezer. The split changes the door sizes, so check before ordering fronts."},
+{t:"apps",q:"Fitting an oven in a housing. What must you never do?",
+ o:["Level it","Block the ventilation the manufacturer asks for","Use supplied screws","Read the manual"],a:1,
+ w:"Ovens need airflow. Follow the manual's cut-out and vent sizes."},
+{t:"apps",q:"Where do you get clearances for a hob, extractor or oven?",
+ o:["Same as last job","The appliance manufacturer's installation manual","The customer","The old kitchen"],a:1,
+ w:"Every model is different. If the manual's missing, download it before you cut anything."},
+{t:"apps",q:"Hanging the furniture door on an integrated dishwasher. How?",
+ o:["Cabinet hinges","On the appliance's own brackets, positioned using its template","Glued on","Velcro"],a:1,
+ w:"The dishwasher door carries the furniture door. Use the template, set the height to line through with the other doors, and check the door spring tension."},
+{t:"safety",q:"Before ripping out an old kitchen, what must be done first?",
+ o:["Wall units off","Water, gas and electrics isolated and disconnected by the right people","Worktop off","Floor up"],a:1,
+ w:"Nothing comes out until services are isolated."},
+{t:"safety",q:"Cutting MDF or MFC indoors. What protection?",
+ o:["None","FFP2/FFP3 mask plus extraction where possible","Glasses only","Gloves only"],a:1,
+ w:"Board dust is fine and harmful. Mask up, use extraction, cut outside where you can."},
+{t:"safety",q:"Before drilling into a wall?",
+ o:["Nothing","Detector, and think about cables running up or down from sockets and switches","Check the paint","Tap it"],a:1,
+ w:"Cables and pipes usually run straight from sockets, switches and taps."},
+{t:"safety",q:"Day one at the customer's home. What goes down first?",
+ o:["Tool bag","Floor protection and dust sheets on the route in and in the work area","New units","Nothing"],a:1,
+ w:"Protect the route in. Damage to a customer's floor costs more than the job margin."},
+{t:"safety",q:"Where does the old cabinetry go?",
+ o:["The garden","The customer's skip only where agreed, otherwise we take it and dispose of it properly","Any skip","The garage"],a:1,
+ w:"Go by the proposal."},
+{t:"units",q:"How deep is our standard base carcass?",
+ o:["500mm", "560mm", "570mm", "600mm"],a:2,
+ w:"570mm, with a 45mm service void behind it. Add the door and you're inside a 600 worktop with room for the overhang."},
+{t:"units",q:"What's the 45mm void at the back of our base units for?",
+ o:["Nothing, it's wasted", "Running pipes and cables behind the units", "Ventilation for the drawers", "It's where the legs go"],a:1,
+ w:"It's a service void. Pipes and cables run behind the carcass back without cutting into the unit."},
+{t:"units",q:"How far back from the front are the legs set on our base units?",
+ o:["20mm", "45mm", "64mm", "100mm"],a:2,
+ w:"64mm from the front. Keep it consistent so the plinth runs straight along the legs."},
+{t:"units",q:"How deep are the soft-close drawers in our base drawer units?",
+ o:["350mm", "400mm", "450mm", "500mm"],a:2,
+ w:"450mm deep. The dresser drawer is the exception at 270mm, because the dresser is only 300 deep."},
+{t:"units",q:"Our standard base unit shelf is 507 deep and set back 20mm. What type of shelf is it?",
+ o:["Fixed shelf", "Single stud shelf", "Wire basket", "Pull-out"],a:1,
+ w:"A single stud shelf. Wall units take the same type, 274 deep."},
+{t:"units",q:"What's different about our sink unit compared to a standard base unit?",
+ o:["Nothing", "Removable back panel and a shorter 452 shelf to clear the pipes and waste", "No base", "It's 600 deep"],a:1,
+ w:"The back comes out for plumbing access, and the shelf is cut back so it clears the waste and supplies."},
+{t:"units",q:"What back void does our hob unit have, compared with 45mm on a standard base?",
+ o:["None","30mm","45mm","60mm"],a:1,
+ w:"30mm on the hob unit, 45mm on standard bases, 23mm on the sink and oven units. Check which unit you've got before running services behind it."},
+{t:"units",q:"A blind corner unit is going on the order. What two things must you specify?",
+ o:["Colour and handle", "Door size, and whether the panel is internal or external", "Leg height and plinth", "Nothing extra"],a:1,
+ w:"The spec asks for both every time. Without them the unit can't be built."},
+{t:"units",q:"A LeMans corner with a 450 door. What's the minimum unit width?",
+ o:["600mm", "800mm", "900mm", "1000mm"],a:2,
+ w:"LeMans 450 needs a 450 door and at least a 900 unit. LeMans 500 needs a 500 door and at least a 1000 unit."},
+{t:"units",q:"A right-hand LeMans blind corner has a right-hand door. Where's the internal panel?",
+ o:["Right", "Left", "Top", "There isn't one"],a:1,
+ w:"Right-hand LeMans: right-hand door, internal panel left. Left-hand is the opposite. Get the hand right on the order."},
+{t:"units",q:"Which L-shape (Norwegian) base corner sizes are on our spec?",
+ o:["600 × 600 and 800 × 800", "900 × 900, 1000 × 1000 and 1100 × 1100", "1200 × 1200 only", "Any size"],a:1,
+ w:"900, 1000 and 1100 square. All are 570 deep on each leg."},
+{t:"units",q:"How are L-shape (Norwegian) corner units measured for the order?",
+ o:["Anticlockwise", "Always clockwise", "Longest side first", "Doesn't matter"],a:1,
+ w:"Always clockwise, base and wall. Measure the other way and the unit comes back handed wrong."},
+{t:"units",q:"Ordering an angled end unit. What must you supply?",
+ o:["Nothing, it's standard", "The width and the door width", "Only the colour", "The leg height"],a:1,
+ w:"Angled units need the width and the door width. There's a 70mm hinge rail on the angled face."},
+{t:"units",q:"Ordering a curved base or wall end unit. What extra measurement goes on the order?",
+ o:["The internal radius", "The plinth length", "The worktop thickness", "Nothing"],a:0,
+ w:"The internal radius (and the width and depth for a curved base). The curved door has to match it."},
+{t:"units",q:"What depths of wall unit do we use?",
+ o:["300mm only","300mm and 330mm","330mm only","270mm and 350mm"],a:1,
+ w:"We use both 300 and 330 deep wall units. The standard 300 has an 8mm void behind and 274 deep shelves. Check which depth is on the order before you set out."},
+{t:"units",q:"How many shelves in our standard 720 wall unit, and at what spacing?",
+ o:["1 shelf", "2 single stud shelves, three equal 216 spaces", "3 shelves at 180", "No shelves"],a:1,
+ w:"Two single stud shelves giving three equal spaces of 216."},
+{t:"units",q:"Which L-shape wall corner sizes are on our spec?",
+ o:["600 × 600, 600 × 620 and 620 × 620", "900 × 900", "500 × 500 only", "300 × 300"],a:0,
+ w:"600 × 600, 600 × 620 and 620 × 620, all measured clockwise."},
+{t:"units",q:"How deep are our tall units (larders, housings, broom cupboards)?",
+ o:["300mm", "500mm", "570mm", "600mm"],a:2,
+ w:"570mm with the 45mm void behind, the same as the base units, so tall units and bases line through at the front."},
+{t:"units",q:"In our standard fully shelved larder, where must the shelves line up?",
+ o:["Anywhere", "One shelf lines up with the door joint", "At the top", "At the hinges"],a:1,
+ w:"The shelves are equally spaced, with one lining up with the joint between the 715 and 1245 doors so it doesn't show through the gap."},
+{t:"units",q:"A larder with internal drawers (1 cutlery and 4 pot). What's the catch when fitting the doors?",
+ o:["None", "The hinge positions are different, so they don't foul the internal drawers", "No hinges are needed", "It needs 3 doors"],a:1,
+ w:"Hinges have to sit clear of the internal drawers. It still takes a 715 bottom and a 1245 top door."},
+{t:"units",q:"Our standard fridge unit takes what doors, and what height is the fridge space?",
+ o:["980 + 980, 1600 space", "715 bottom + 1245 top, 1780 space", "1965 single, 1900 space", "715 + 715, 1400 space"],a:1,
+ w:"715 + 1245 doors with a 1780 appliance space. Check the fridge freezer height against it before ordering."},
+{t:"units",q:"Our double oven housing with a 495 top door and two 283 drawers. What's the oven space between the shelves?",
+ o:["600mm", "880mm", "940mm", "1060mm"],a:1,
+ w:"880 between the shelves inside the carcass. The 940 on the door matrix is the gap between the door fronts. Check the oven's cut-out against the carcass space."},
+{t:"units",q:"Ordering an oven and microwave housing. What must go on the order?",
+ o:["Just the width", "All internal dimensions, door or drawer sizes, and whether the top door is side-hung or lift-up", "Only the oven model", "Nothing, it's standard"],a:1,
+ w:"The spec says the internal dimensions must be given. The loose shelf comes for fixing on site, so set it to suit the appliance."},
+{t:"units",q:"What's the difference between our two broom cupboards?",
+ o:["Width", "One has two shelves at the top, the other one shelf with 1600 clear below", "One is 2150 tall", "One has drawers"],a:1,
+ w:"Two-shelf version leaves 1400 clear below; one-shelf version leaves 1600 clear for brushes and the hoover."},
+{t:"units",q:"Our 1210 dresser unit: what's the make-up?",
+ o:["1210 door only", "1060 top door, 140 drawer at the bottom, two shelves, 300 deep", "715 + 495", "Open shelves only"],a:1,
+ w:"1060 door over a 140 drawer (270 deep, soft close), two shelves inside, 300 deep."},
+{t:"units",q:"A D-line base unit is what?",
+ o:["Four drawers", "A 140 cutlery drawer over a 570 door, with a shelf", "A pan drawer unit", "A corner unit"],a:1,
+ w:"140 drawer over a 570 door. The drawer is 450 deep soft close and there's a single stud shelf below."}
+];
+
+
+/* ───────────────────────── UTILITIES ───────────────────────── */
+const app = document.getElementById('app');
+const LETTERS = ['A','B','C','D'];
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function store(k,v){try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; }}
+const SAVE_KEY='hok-fitter-game';
+function loadSave(){ return Object.assign({name:'',xp:0,badges:[],stars:{},stats:{diagram:0,spot:0,build:0,calc:0,shifts:0},clockBest:0}, store(SAVE_KEY)||{}); }
+let save = loadSave();
+function persist(){ store(SAVE_KEY,save); }
+
+const RANKS=[[0,'Apprentice'],[300,'Improver'],[900,'Fitter'],[1800,'Senior fitter'],[3000,'Lead fitter']];
+function rankOf(xp){ let r=RANKS[0],next=null; for(let i=0;i<RANKS.length;i++){ if(xp>=RANKS[i][0]){r=RANKS[i]; next=RANKS[i+1]||null;} } return {name:r[1],floor:r[0],next}; }
+
+const BADGES=[
+ {id:'first',name:'First shift',desc:'Finish a shift or job card'},
+ {id:'roll',name:'On a roll',desc:'5 right in a row'},
+ {id:'fire',name:'On fire',desc:'10 right in a row'},
+ {id:'clean',name:'Clean site',desc:'Finish a shift without losing a hard hat'},
+ {id:'housing',name:'Housing hero',desc:'10 drawings solved'},
+ {id:'snag',name:'Snagger',desc:'Find 5 faults on site'},
+ {id:'makeup',name:'Make-up pro',desc:'Build 5 correct door make-ups'},
+ {id:'mm',name:'To the mm',desc:'10 calculations right'},
+ {id:'clock',name:'Against the clock',desc:'15 or more in Beat the clock'},
+ {id:'star',name:'Three-star job',desc:'3 stars on a job card'}
+];
+
+const HAT = on => `<svg class="hat ${on?'':'lost'}" viewBox="0 0 24 16" aria-hidden="true"><path d="M3 13h18v2H3z" fill="currentColor"/><path d="M5 13a7 7 0 0 1 14 0z" fill="currentColor"/><path d="M11 5h2v4h-2z" fill="var(--bg)"/></svg>`;
+
+/* ───────────────────────── ITEM: MULTIPLE CHOICE ───────────────────────── */
+function mcItem(q){
+  const order=shuffle(q.o.map((_,i)=>i)), correct=order.indexOf(q.a);
+  return {kind:'mc',label:'Question',topic:q.t,xp:10,prompt:q.q,
+    mount(el,finish){
+      el.innerHTML=`<p class="question">${esc(q.q)}</p><div class="opts">${order.map((oi,i)=>`<button class="opt" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${esc(q.o[oi])}</span></button>`).join('')}</div>`;
+      el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+        const p=+b.dataset.i, ok=p===correct;
+        el.querySelectorAll('.opt').forEach((x,i)=>{x.disabled=true; x.classList.add(i===correct?'right':i===p?'wrong':'dim');});
+        finish(ok,{why:q.w,answer:q.o[q.a]});
+      });
+    }};
+}
+
+/* ───────────────────────── ITEM: CALCULATION ───────────────────────── */
+function calcItem(topic,prompt,ans,why,unit='mm'){
+  return {kind:'calc',label:'Work it out',topic,xp:15,prompt,
+    mount(el,finish){
+      el.innerHTML=`<p class="question">${esc(prompt)}</p>
+        <div class="calc"><input id="ans" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Your answer"><span class="unit">${unit}</span><button class="check" id="go">Check</button></div>`;
+      const inp=el.querySelector('#ans'), go=el.querySelector('#go');
+      const submit=()=>{ const v=parseInt(inp.value.replace(/[^0-9]/g,''),10); if(isNaN(v)) {inp.focus();return;}
+        const ok=v===ans; inp.disabled=true; go.disabled=true; inp.classList.add(ok?'right':'wrong');
+        finish(ok,{why,answer:ans+(unit?' '+unit:'')}); };
+      go.onclick=submit; inp.onkeydown=e=>{if(e.key==='Enter')submit();};
+      setTimeout(()=>inp.focus({preventScroll:true}),50);
+    }};
+}
+const W_TOPS=[15,20,30,38,40], LEGS=[150,155,160,165,170];
+const CALCS=[
+ ()=>{const t=pick(W_TOPS);return calcItem('setout',`Legs at 150mm, 720mm carcass, ${t}mm worktop. What's the finished worktop height?`,870+t,`150 + 720 + ${t} = ${870+t}mm. Worktops come in 15, 20, 30, 38 and 40mm, so always check which one you've got.`);},
+ ()=>{const c=pick([1970,2150]),l=pick(LEGS);return calcItem('setout',`A ${c}mm tall unit with its legs at ${l}mm. How high is the top off the floor?`,c+l,`${l} + ${c} = ${c+l}mm. That's the line the wall unit tops come off.`);},
+ ()=>{const c=pick([1970,2150]),l=pick(LEGS),w=c===1970?720:900,top=c+l;return calcItem('setout',`Top of the ${c} larder is at ${top}mm. Wall units are ${w} high. Measuring down, where's the underside of the wall units?`,top-w,`${top} − ${w} = ${top-w}mm. Always measure down from the tall units, never up from the worktop.`);},
+ ()=>{const t=pick(W_TOPS),u=pick([1400,1410,1420]);return calcItem('setout',`Underside of the wall units is at ${u}mm. Worktop is ${t}mm on 150 legs and a 720 carcass. What's the gap between worktop and wall units?`,u-870-t,`Worktop top = 150 + 720 + ${t} = ${870+t}. ${u} − ${870+t} = ${u-870-t}mm.`);},
+ ()=>{const r=(Math.round((2.2+Math.random()*5.3)*10)/10),L=pick([3.0,3.6,4.1]),n=Math.ceil(r/L-1e-9);return calcItem('tops',`A straight run of ${r.toFixed(1)}m. Worktops come in ${L.toFixed(1)}m lengths. How many lengths do you order?`,n,(r<=L?`One ${L.toFixed(1)}m length covers ${r.toFixed(1)}m.`:`${r.toFixed(1)} ÷ ${L.toFixed(1)} = ${(r/L).toFixed(2)}, so round up to ${n}.`)+` Then plan where the joint lands: never at the sink, hob or over the dishwasher.`,'');},
+ ()=>{const w=pick([300,400,500,600]);return calcItem('doors',`A ${w}mm base unit takes one door. Using the matrix sizes (carcass width less 3mm), what width door do you order?`,w-3,`${w} − 3 = ${w-3}mm. Some ranges list it a mm or two different, so check that supplier's matrix.`);},
+ ()=>{const w=pick([800,900,1000]);return calcItem('doors',`A ${w}mm base unit takes two doors. Using the matrix sizes, what width is each door?`,w/2-3,`Half of ${w} is ${w/2}, less 3mm = ${w/2-3}mm each.`);},
+ ()=>{const l=pick(LEGS);return calcItem('panels',`The legs at the end of the run are at ${l}mm. Carcass is 720. What length do you cut the base end panel to (floor to underside of worktop)?`,l+720,`${l} + 720 = ${l+720}mm. Keep cut edges to the top where you can. A cut edge at the floor gets two coats of PVA and silicone.`);},
+ ()=>{const set=pick([[175,175,175,175],[355,355],[140,570],[140,283,283]]);const tot=set.reduce((a,b)=>a+b,0)+5*(set.length-1);return calcItem('doors',`Drawer fronts ${set.join(' + ')} stacked with the 5mm gap between each. What's the total height?`,tot,`${set.join(' + ')} = ${tot-5*(set.length-1)}, plus ${set.length-1} × 5mm gaps = ${tot}mm. That's why they line through with a 715 door.`);},
+ ()=>{const c=pick([1970,2150]);return calcItem('setout',`A ${c} larder with the minimum 150mm leg. Wall units line through with its top. How high off the floor are the tops of the wall units?`,c+150,`150 + ${c} = ${c+150}mm.`);}
+];
+
+/* ───────────────────────── ITEM: DRAWING (MISSING SIZE) ───────────────────────── */
+// fronts: numbers = door/drawer fronts, [n] = appliance aperture
+const HOUSINGS=[
+ ['1970 double oven housing',1970,[570,[940],450]],['1970 double oven housing',1970,[495,[940],495]],['1970 double oven housing',1970,[450,[940],283,283]],['1970 double oven housing',1970,[450,[940],570]],
+ ['1970 single oven housing',1970,[715,[675],283,283]],['1970 single oven housing',1970,[715,[675],570]],['1970 single oven housing',1970,[570,[675],715]],['1970 single oven housing',1970,[645,[600],715]],
+ ['1970 microwave / combi housing',1970,[715,[530],715]],['1970 microwave / combi housing',1970,[715,[530],355,355]],['1970 microwave / combi housing',1970,[495,[485],980]],
+ ['1970 single oven + microwave',1970,[450,[1155],355]],['1970 single oven + microwave',1970,[495,[1110],355]],['1970 single oven + microwave',1970,[450,[1060],450]],
+ ['1970 fridge freezer housing',1970,[980,980]],['1970 fridge freezer housing (70:30)',1970,[1245,715]],
+ ['1970 larder',1970,[715,1245]],['1970 larder',1970,[1245,715]],['1970 larder',1970,[980,980]],
+ ['2150 double oven housing',2150,[715,[930],495]],['2150 double oven housing',2150,[715,[975],450]],['2150 double oven housing',2150,[715,[962],175,283]],['2150 double oven housing',2150,[570,[1010],570]],
+ ['2150 microwave / combi housing',2150,[715,[565],140,715]],['2150 microwave / combi housing',2150,[895,[530],715]],['2150 microwave / combi housing',2150,[895,[530],355,355]],
+ ['2150 single oven + microwave',2150,[495,[1075],283,283]],['2150 single oven + microwave',2150,[495,[1075],570]],['2150 single oven + microwave',2150,[570,[1075],140,355]],
+ ['2150 fridge freezer housing',2150,[1425,715]],
+ ['2150 larder',2150,[895,1245]],['2150 larder',2150,[1245,895]],['2150 larder',2150,[1425,715]],
+ ['Base unit, 715 drawer line',720,[140,283,283]],['Base unit, 715 drawer line',720,[175,175,175,175]],['Base unit, 715 drawer line',720,[355,355]],['Base unit, 715 drawer line',720,[140,570]]
+];
+const FRONT_POOL=[140,175,283,355,450,495,570,645,715,895,980,1245,1425,1965];
+const AP_POOL=[485,530,565,600,675,930,940,962,975,1010,1060,1075,1110,1155];
+function cabinetSVG(cab,fronts,hide,opts={}){
+  const H=300, s=H/(cab+150), x0=92, w=110, plinth=150*s;
+  let y=6, out='';
+  fronts.forEach((f,i)=>{
+    const ap=Array.isArray(f), v=ap?f[0]:f, h=v*s;
+    const fill=ap?'none':'var(--front)';
+    out+=`<rect x="${x0}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${fill}" stroke="var(--ink)" stroke-width="1.4" ${ap?'stroke-dasharray="4 3"':''}/>`;
+    if(ap) out+=`<path d="M${x0} ${y}L${x0+w} ${y+h}M${x0+w} ${y}L${x0} ${y+h}" stroke="var(--muted)" stroke-width="1"/>`;
+    else if(h>14) out+=`<rect x="${x0+w/2-12}" y="${y+Math.min(10,h/2-2)}" width="24" height="3" rx="1.5" fill="var(--muted)"/>`;
+    const label = i===hide ? '?' : (ap?`(${v})`:v);
+    const cy=y+h/2;
+    if(i===hide) out+=`<rect x="${x0-58}" y="${cy-11}" width="50" height="22" rx="4" fill="var(--tape)"/><text x="${x0-33}" y="${cy+5}" text-anchor="middle" class="dimq">?</text>`;
+    else out+=`<text x="${x0-10}" y="${cy+4}" text-anchor="end" class="dim">${label}</text>`;
+    out+=`<path d="M${x0-6} ${y+1}V${y+h-1}" stroke="var(--line)" stroke-width="1"/>`;
+    y+=h+5*s;
+  });
+  const total=6+cab*s;
+  out+=`<rect x="${x0}" y="${total+2}" width="${w}" height="${plinth-2}" fill="var(--plinth)"/>`;
+  out+=`<text x="${x0+w+10}" y="${6+cab*s/2}" class="dim small" transform="rotate(90 ${x0+w+10} ${6+cab*s/2})" text-anchor="middle">${cab} cabinet</text>`;
+  out+=`<text x="${x0+w/2}" y="${total+plinth/2+5}" text-anchor="middle" class="dim small">150 plinth</text>`;
+  return `<svg class="draw" viewBox="0 0 230 ${total+plinth+8}" role="img" aria-label="${esc(opts.aria||'Cabinet drawing')}">${out}</svg>`;
+}
+function diagramItem(){
+  const [title,cab,fronts]=pick(HOUSINGS), hide=Math.floor(Math.random()*fronts.length);
+  const f=fronts[hide], ap=Array.isArray(f), v=ap?f[0]:f;
+  const pool=(ap?AP_POOL:FRONT_POOL).filter(x=>x!==v);
+  const opts=shuffle([v,...shuffle(pool).slice(0,3)]);
+  const fmt=x=>ap?`(${x}) aperture`:`${x}`;
+  const topic=cab===720?'doors':(/larder/.test(title)?'doors':'ovens');
+  const what=ap?'appliance aperture':'front';
+  return {kind:'diagram',label:'Read the drawing',topic,xp:15,prompt:`${title}: missing ${what}`,
+    mount(el,finish){
+      el.innerHTML=`<p class="question">${esc(title)}. What's the missing ${what} size?</p>
+      <div class="drawwrap">${cabinetSVG(cab,fronts,hide,{aria:title})}</div>
+      <div class="opts grid2">${opts.map((o,i)=>`<button class="opt" data-v="${o}"><span class="k">${LETTERS[i]}</span><span>${fmt(o)}</span></button>`).join('')}</div>`;
+      el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+        const ok=+b.dataset.v===v;
+        el.querySelectorAll('.opt').forEach(x=>{x.disabled=true; x.classList.add(+x.dataset.v===v?'right':x===b?'wrong':'dim');});
+        const q=el.querySelector('.dimq'); if(q) q.textContent=ap?`(${v})`:v;
+        const make=fronts.map(x=>Array.isArray(x)?`(${x[0]})`:x).join(' / ');
+        finish(ok,{why:`${title}: ${make}, top to bottom. Apertures in brackets are the space between the door fronts, not the carcass opening.`,answer:fmt(v)});
+      });
+    }};
+}
+
+/* ───────────────────────── ITEM: BUILD THE MAKE-UP ───────────────────────── */
+const BUILDS=[
+ {title:'Make up the fronts for a base unit on the 715 line',cab:720,line:715,tiles:[140,175,283,355,450,570,715],valid:[[715],[140,570],[355,355],[140,283,283],[175,175,175,175],[140,140,140,283]],why:'Standard make-ups: 715 door, 140 + 570, 355 + 355, 140 + 283 + 283, 4 × 175, or 140 × 3 + 283. With the 5mm gaps, each lands on the 715 line.'},
+ {title:'Make up the doors for a 1970 larder',cab:1970,line:1965,tiles:[570,715,895,980,1245,1425,1965],valid:[[1965],[715,1245],[980,980]],why:'1970 larder: a single 1965, 1245 + 715 (either way up) or 980 + 980.'},
+ {title:'Make up the doors for a 2150 larder',cab:2150,line:2145,tiles:[570,715,895,980,1245,1425,1965],valid:[[895,1245],[715,1425]],why:'2150 larder: 895 + 1245 (either way up) or 715 + 1425.'},
+ {title:'Make up the doors for a 70:30 fridge freezer in a 1970 housing',cab:1970,line:1965,tiles:[355,715,895,980,1245,1425],valid:[[715,1245]],why:'1245 on the fridge, 715 on the freezer. A 50:50 would be 980 + 980.'},
+ {title:'Make up the doors for an integrated fridge freezer in a 2150 housing',cab:2150,line:2145,tiles:[175,715,895,980,1245,1425],valid:[[715,1425]],why:'1430 (1425) on the fridge over 720 (715) on the freezer. No extra panel on top.'}
+];
+function buildItem(){
+  const b=pick(BUILDS);
+  return {kind:'build',label:'Build the make-up',topic:'doors',xp:20,prompt:b.title,
+    mount(el,finish){
+      let stack=[]; let done=false;
+      const draw=()=>{
+        const H=230, s=H/b.cab, x0=70, w=100; let y=6, out='';
+        out+=`<rect x="${x0-4}" y="2" width="${w+8}" height="${b.cab*s+8}" fill="none" stroke="var(--line)" stroke-width="1.4" rx="3"/>`;
+        stack.forEach((v,i)=>{const h=v*s; const over=y+h>6+b.cab*s+1;
+          out+=`<rect x="${x0}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${over?'var(--wrong-bg)':'var(--front)'}" stroke="${over?'var(--wrong)':'var(--ink)'}" stroke-width="1.3"/><text x="${x0+w/2}" y="${y+h/2+4}" text-anchor="middle" class="dim">${v}</text>`;
+          y+=h+5*s;});
+        const used=stack.reduce((a,c)=>a+c,0)+Math.max(0,stack.length-1)*5;
+        el.querySelector('.bsvg').innerHTML=`<svg class="draw" viewBox="0 0 240 ${b.cab*s+14}">${out}<text x="${x0+w+14}" y="${6+b.cab*s/2}" class="dim small" transform="rotate(90 ${x0+w+14} ${6+b.cab*s/2})" text-anchor="middle">${b.cab} cabinet</text></svg>`;
+        el.querySelector('.used').innerHTML=`Fronts + gaps: <b>${used}</b> of ${b.line}`;
+        el.querySelector('#chk').disabled=!stack.length||done;
+      };
+      el.innerHTML=`<p class="question">${esc(b.title)}.</p><p class="hint">Tap sizes to stack them top to bottom. Tap a front in the list to remove it. 5mm gap between each.</p>
+        <div class="buildgrid"><div class="bsvg"></div><div><div class="tiles">${b.tiles.map(t=>`<button class="tile" data-v="${t}">${t}</button>`).join('')}</div>
+        <div class="chips"></div><p class="used"></p><div class="row2"><button class="ghost sm" id="clr">Clear</button><button class="check" id="chk">Check</button></div></div></div>`;
+      const chips=()=>{el.querySelector('.chips').innerHTML=stack.map((v,i)=>`<button class="chip" data-i="${i}">${v} ✕</button>`).join('');
+        el.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{if(done)return;stack.splice(+c.dataset.i,1);chips();draw();});};
+      el.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{if(done||stack.length>=5)return;stack.push(+t.dataset.v);chips();draw();});
+      el.querySelector('#clr').onclick=()=>{if(done)return;stack=[];chips();draw();};
+      el.querySelector('#chk').onclick=()=>{done=true; const key=stack.slice().sort((a,c)=>a-c).join(',');
+        const ok=b.valid.some(v=>v.slice().sort((a,c)=>a-c).join(',')===key);
+        el.querySelectorAll('.tile,.chip,#clr').forEach(x=>x.disabled=true); draw();
+        finish(ok,{why:b.why,answer:b.valid.map(v=>v.join(' + ')).join('  or  ')});};
+      draw();
+    }};
+}
+
+/* ───────────────────────── ITEM: PUT IT IN ORDER ───────────────────────── */
+const SEQS=[
+ {title:'Setting out and hanging wall units',topic:'setout',steps:['Draw the level datum line round the room','Mark the top line off the top of the tall units','Measure down for the underside of the wall units','Check the wall for cables and pipes','Fix the hanging brackets or rail','Hang, adjust to the line and connect the units'],why:'Datum first, then work down from the tall units. Check for services before any drilling.'},
+ {title:'Hanging a new door',topic:'hinges',steps:['Inspect the door for damage','Mark hinges 100mm from top and bottom','Bore the 35mm cups with a jig','Fit the hinges','Hang the door on the carcass','Adjust side, height and depth for even gaps'],why:'Inspect before you drill: a drilled door can\'t go back. Then mark, bore, fit, hang and adjust.'},
+ {title:'Masons mitre on a round-front worktop',topic:'tops',steps:['Measure and mark the joint','Cut the mitre with the router and jig','Rout the bolt recesses underneath','Seal the cut edges and joint','Tighten the worktop bolts evenly','Wipe off the excess sealant'],why:'Seal before the bolts go tight, and clean off before it sets.'},
+ {title:'Starting a rip-out',topic:'safety',steps:['Put down floor protection','Services isolated by the right people','Take off doors and drawers','Remove the worktops','Take out the carcasses'],why:'Protect the house and isolate services before anything comes off the wall.'}
+];
+function seqItem(){
+  const q=pick(SEQS);
+  return {kind:'seq',label:'Put it in order',topic:q.topic,xp:20,prompt:q.title,
+    mount(el,finish){
+      let placed=[]; const pool=shuffle(q.steps.map((_,i)=>i)); let done=false;
+      const draw=()=>{
+        el.querySelector('.placed').innerHTML=placed.map((si,n)=>`<li><button class="step on" data-n="${n}"><span class="num">${n+1}</span>${esc(q.steps[si])}</button></li>`).join('')+(placed.length<q.steps.length?`<li class="slot">Step ${placed.length+1}: tap below</li>`:'');
+        el.querySelector('.pool').innerHTML=pool.filter(i=>!placed.includes(i)).map(i=>`<button class="step" data-i="${i}">${esc(q.steps[i])}</button>`).join('');
+        el.querySelectorAll('.pool .step').forEach(b=>b.onclick=()=>{if(done)return;placed.push(+b.dataset.i);draw();check();});
+        el.querySelectorAll('.placed .step').forEach(b=>b.onclick=()=>{if(done)return;placed.splice(+b.dataset.n);draw();});
+      };
+      const check=()=>{ if(placed.length<q.steps.length) return; done=true;
+        const ok=placed.every((v,i)=>v===i);
+        el.querySelectorAll('.placed .step').forEach((b,n)=>{b.disabled=true;b.classList.add(placed[n]===n?'right':'wrong');});
+        finish(ok,{why:q.why,answer:q.steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}); };
+      el.innerHTML=`<p class="question">${esc(q.title)}: put the steps in order.</p><p class="hint">Tap the steps in the order you'd do them. Tap a placed step to undo from there.</p><ol class="placed"></ol><div class="pool"></div>`;
+      draw();
+    }};
+}
+
+/* ───────────────────────── ITEM: SPOT THE FAULT ───────────────────────── */
+const FAULTS={
+ wallHigh:{targets:['w1','w2','w3','w4'],why:'The wall units are higher than the larder top. Wall unit tops line through with the tall units, so measure down from the larder top, not up from the worktop.'},
+ joint:{targets:['joint'],why:'Worktop joint over the dishwasher. Steam gets into it every cycle and the joint blows. Keep joints away from the sink, hob and dishwasher.'},
+ tilt:{targets:['d3'],why:'That door is out: the gap runs off. Use the side adjustment on the hinges to get the 3mm gap running parallel.'},
+ extNarrow:{targets:['ext'],why:'The extractor is narrower than the hob. It needs to be at least the hob width: a 600 hob needs a 600 extractor minimum.'},
+ hobTall:{targets:['hob'],why:'The hob is tight against the tall unit. Check the hob manual for side clearance to tall units and walls. Most need a gap or a different layout.'},
+ lowLeg:{targets:['d2','worktop'],why:'That unit\'s legs are low: the worktop dips over it. Set 150 at the highest point of the floor and wind the rest up to level, never below 150.'}
+};
+function sceneSVG(f){
+  const Y=mm=>260-mm/10; let o='';
+  const hit=(id,body)=>`<g class="hit" data-id="${id}">${body}</g>`;
+  // floor
+  o+=`<rect x="0" y="260" width="380" height="6" fill="var(--line)"/>`;
+  // tall unit
+  const tallTop=150+1970;
+  o+=hit('tall',`<rect x="10" y="${Y(tallTop)}" width="60" height="${197}" class="cab"/><rect x="11" y="${Y(tallTop)+1}" width="58" height="${124.5}" class="front"/><rect x="11" y="${Y(tallTop)+126.5}" width="58" height="${69.5}" class="front"/><rect x="11" y="245" width="58" height="15" class="plinth"/>`);
+  // base units
+  const hobX=f==='hobTall'?70:130;
+  const xs=[70,130,190,250,310];
+  xs.forEach((x,i)=>{
+    const id='d'+(i+1); const drop=(f==='lowLeg'&&i===1)?2.5:0;
+    const tilt=(f==='tilt'&&i===2)?` transform="rotate(2.2 ${x+30} ${Y(510)})"`:'';
+    o+=hit(id,`<rect x="${x+0.3}" y="${Y(870)+0.8+drop}" width="59.4" height="${71.2}" class="front"${tilt}/><rect x="${x}" y="245" width="60" height="15" class="plinth"/>`);
+  });
+  // worktop
+  const wtY=Y(908);
+  if(f==='lowLeg') o+=hit('worktop',`<path d="M70 ${wtY}H130L131 ${wtY+2.5}H189L190 ${wtY}H370V${wtY+3.8}H190L189 ${wtY+6.3}H131L130 ${wtY+3.8}H70Z" class="top"/>`);
+  else o+=hit('worktop',`<rect x="70" y="${wtY}" width="300" height="3.8" class="top"/>`);
+  if(f==='joint') o+=hit('joint',`<rect x="332" y="${wtY-8}" width="16" height="20" fill="transparent"/><path d="M340 ${wtY}V${wtY+3.8}" stroke="var(--ink)" stroke-width="1.2"/>`);
+  // sink
+  o+=hit('sink',`<rect x="262" y="${wtY-2.5}" width="36" height="2.5" class="metal"/><path d="M278 ${wtY-2.5}v-9h6" stroke="var(--muted)" stroke-width="1.6" fill="none"/>`);
+  // hob
+  o+=hit('hob',`<rect x="${hobX+8}" y="${wtY-1.6}" width="44" height="1.6" fill="var(--ink)"/>`);
+  // wall units
+  const wTop=f==='wallHigh'?tallTop+60:tallTop, wBot=wTop-720;
+  const wx=[70,190,250,310].filter(x=>x!==hobX); if(f==='hobTall') wx.push(130);
+  wx.sort((a,b)=>a-b).forEach((x,i)=>{o+=hit('w'+(i+1),`<rect x="${x+0.3}" y="${Y(wTop)}" width="59.4" height="72" class="front"/>`);});
+  // extractor
+  const ew=f==='extNarrow'?40:60, ex=hobX+(60-ew)/2;
+  o+=hit('ext',`<rect x="${ex+0.3}" y="${Y(tallTop)}" width="${ew-0.6}" height="57" class="front"/><rect x="${ex+2}" y="${Y(tallTop)+57}" width="${ew-4}" height="2" fill="var(--muted)"/>`);
+  return `<svg class="scene" viewBox="4 36 372 232" role="img" aria-label="Kitchen elevation with one fault">${o}</svg>`;
+}
+function spotItem(){
+  const key=pick(Object.keys(FAULTS)), f=FAULTS[key];
+  return {kind:'spot',label:'Spot the fault',topic:'install',xp:20,prompt:'Spot the fault',
+    mount(el,finish){
+      el.innerHTML=`<p class="question">Snagging: there's one fault on this kitchen. Tap it.</p><p class="hint">Tall unit on the left, hob with extractor above, sink, dishwasher on the right.</p><div class="scenewrap">${sceneSVG(key)}</div>`;
+      let done=false;
+      el.querySelectorAll('.hit').forEach(g=>g.onclick=()=>{ if(done)return; done=true;
+        const ok=f.targets.includes(g.dataset.id);
+        el.querySelectorAll('.hit').forEach(h=>{ if(f.targets.includes(h.dataset.id)) h.classList.add('isfault'); });
+        if(!ok) g.classList.add('miss');
+        finish(ok,{why:f.why,answer:'See the highlighted part'}); });
+    }};
+}
+/* ───────────────────────── GAME FLOW ───────────────────────── */
+const ITEM_GENS={
+  calc:()=>pick(CALCS)(), diagram:diagramItem, build:buildItem, seq:seqItem, spot:spotItem
+};
+function mcFrom(list,n){ return shuffle(list).slice(0,n).map(mcItem); }
+function topicExtras(topic){
+  // interactive items that belong to a job card
+  const out=[];
+  const want={setout:4,units:0,install:2,hinges:1,doors:4,panels:2,tops:2,ovens:4,apps:0,safety:1}[topic]||0;
+  const fns=[()=>pick(CALCS)(),diagramItem,buildItem,seqItem,spotItem];
+  let tries=0; while(out.length<want&&tries<200){tries++;const it=pick(fns)();if(it.topic===topic&&!out.some(o=>o.prompt===it.prompt&&o.kind===it.kind))out.push(it);}
+  return out;
+}
+function makeShift(){
+  const items=[...mcFrom(Q,5),ITEM_GENS.calc(),ITEM_GENS.calc(),diagramItem(),diagramItem(),buildItem(),seqItem(),spotItem()];
+  return shuffle(items);
+}
+function makeJob(topic){
+  const extra=topicExtras(topic);
+  const mc=mcFrom(Q.filter(q=>q.t===topic),Math.max(4,10-extra.length));
+  return shuffle([...mc,...extra]).slice(0,10);
+}
+
+let run=null;
+function startRun(mode,topic){
+  const items= mode==='shift'?makeShift(): makeJob(topic);
+  run={mode,topic,items,i:0,lives:3,xp:0,streak:0,bestStreak:0,correct:0,log:[],newBadges:[]};
+  showItem();
+}
+function hud(){
+  const mult=run.streak>=6?3:run.streak>=3?2:1;
+  return `<div class="hud">
+    <div class="hats" aria-label="${run.lives} hard hats left">${[0,1,2].map(i=>HAT(i<run.lives)).join('')}</div>
+    <div class="streak ${mult>1?'hot':''}" aria-label="Streak ${run.streak}">${run.streak} in a row${mult>1?` · ×${mult}`:''}</div>
+    <div class="xp" aria-label="${run.xp} XP this run">+${run.xp} XP</div>
+    <button class="quit" id="quit">Quit</button></div>`;
+}
+function tape(done,total){
+  const pct=total?done/total*100:0;
+  return `<div class="tape" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}"><div class="fill" style="width:${pct}%"></div><div class="mark" style="left:calc(${pct}% - 2px)"></div><span class="read">${done} / ${total}</span></div>`;
+}
+function showItem(){
+  const it=run.items[run.i];
+  app.innerHTML=`${hud()}${tape(run.i,run.items.length)}
+    <div class="tagrow"><span class="kind k-${it.kind}">${it.label}</span><span class="tag">${TOPICS[it.topic]||''}</span><button class="flagq" id="flag">${(save.flags||[]).some(f=>f.q===it.prompt)?'Flagged':'Unclear? Flag it'}</button></div>
+    <div class="card" id="card"></div><div id="after"></div>`;
+  app.querySelector('#quit').onclick=()=>{ if(confirm('Quit this run? XP from it won\'t be saved.')) home(); };
+  app.querySelector('#flag').onclick=e=>{ save.flags=save.flags||[]; if(!save.flags.some(f=>f.q===it.prompt)){ save.flags.push({q:it.prompt,t:TOPICS[it.topic]||'',d:new Date().toLocaleDateString('en-IE')}); persist(); } e.target.textContent='Flagged'; e.target.disabled=true; };
+  it.mount(app.querySelector('#card'),(ok,info)=>answered(it,ok,info));
+  window.scrollTo(0,0);
+}
+function answered(it,ok,info){
+  let gain=0;
+  if(ok){ run.streak++; run.correct++; const mult=run.streak>=6?3:run.streak>=3?2:1; gain=it.xp*mult; run.xp+=gain;
+    if(['diagram','spot','build','calc'].includes(it.kind)) save.stats[it.kind]=(save.stats[it.kind]||0)+1;
+  } else { run.streak=0; run.lives--; }
+  run.bestStreak=Math.max(run.bestStreak,run.streak);
+  run.log.push({it,ok,info});
+  const last=run.i===run.items.length-1, out=run.lives<=0;
+  app.querySelector('.hud').outerHTML=hud();
+  app.querySelector('#quit').onclick=()=>{ if(confirm('Quit this run? XP from it won\'t be saved.')) home(); };
+  app.querySelector('.tape').outerHTML=tape(run.i+1,run.items.length);
+  const after=app.querySelector('#after');
+  after.innerHTML=`<div class="why ${ok?'ok':'bad'}" aria-live="polite">
+    <div class="whyhead"><h3>${ok?pick(['Spot on','Nailed it','Correct','Good work']):'Not quite'}</h3>${ok?`<span class="gain">+${gain} XP</span>`:`<span class="lost">−1 hard hat</span>`}</div>
+    ${!ok&&info.answer?`<p class="ans">Answer: ${esc(info.answer).replace(/\n/g,'<br>')}</p>`:''}
+    <p>${esc(info.why)}</p></div>
+    <button class="next" id="next">${out?'Shift over':last?'Finish the job':'Next'}</button>`;
+  if(ok && run.streak>0 && run.streak%5===0) flash(`${run.streak} in a row`);
+  const nx=after.querySelector('#next');
+  nx.onclick=()=>{ if(out||last) results(out); else { run.i++; showItem(); } };
+  nx.focus({preventScroll:true});
+  after.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function flash(text){ const d=document.createElement('div'); d.className='flash'; d.textContent=text; document.body.appendChild(d); setTimeout(()=>d.remove(),1400); }
+
+function award(id){ if(!save.badges.includes(id)){ save.badges.push(id); run.newBadges.push(id);} }
+function results(knocked){
+  const n=run.log.length, pct=Math.round(run.correct/run.items.length*100);
+  const before=rankOf(save.xp).name;
+  save.xp+=run.xp; save.stats.shifts=(save.stats.shifts||0)+1;
+  award('first');
+  if(run.bestStreak>=5) award('roll'); if(run.bestStreak>=10) award('fire');
+  if(run.mode==='shift'&&!knocked&&run.lives===3) award('clean');
+  if(save.stats.diagram>=10) award('housing'); if(save.stats.spot>=5) award('snag');
+  if(save.stats.build>=5) award('makeup'); if(save.stats.calc>=10) award('mm');
+  let stars=0;
+  if(run.mode==='job'&&!knocked){ stars=pct>=90?3:pct>=70?2:pct>=50?1:0; save.stars[run.topic]=Math.max(save.stars[run.topic]||0,stars); if(stars===3) award('star'); }
+  persist();
+  const after=rankOf(save.xp).name, promoted=after!==before;
+  const missed=run.log.filter(l=>!l.ok);
+  app.innerHTML=`
+    <p class="tag">${run.mode==='shift'?"Today's shift":TOPICS[run.topic]}</p>
+    <h2 class="big-h">${knocked?'Out of hard hats':'Job done'}</h2>${knocked?`<p class="muted">Sent home after ${n} of ${run.items.length}. XP earned still counts.</p>`:''}
+    <div class="scoreline"><span class="score">${run.correct}/${knocked?n:run.items.length}</span><span class="xpwin">+${run.xp} XP</span></div>
+    ${run.mode==='job'&&!knocked?`<div class="stars" aria-label="${stars} stars">${[1,2,3].map(i=>`<span class="${i<=stars?'on':''}">★</span>`).join('')}</div>`:''}
+    ${promoted?`<div class="promo">Promoted to <b>${after}</b></div>`:''}
+    ${rankCard()}
+    ${run.newBadges.length?`<h3>New badges</h3><div class="badges">${run.newBadges.map(id=>badgeHTML(BADGES.find(b=>b.id===id),true,true)).join('')}</div>`:''}
+    ${missed.length?`<h3>Go over these</h3>${missed.map(l=>`<div class="miss"><p><b>${esc(l.it.prompt)}</b></p>${l.info.answer?`<p class="ans">${esc(l.info.answer).replace(/\n/g,'<br>')}</p>`:''}<p class="muted">${esc(l.info.why)}</p></div>`).join('')}`:''}
+    <div class="row"><button class="next" id="again" style="margin:0">${run.mode==='shift'?'Another shift':'Try this job again'}</button><button class="ghost" id="home">Back to the yard</button></div>`;
+  const m=run.mode,t=run.topic;
+  app.querySelector('#again').onclick=()=>startRun(m,t);
+  app.querySelector('#home').onclick=home;
+  if(promoted) flash(`Promoted: ${after}`);
+  window.scrollTo(0,0);
+}
+
+/* ───────────────────────── BEAT THE CLOCK ───────────────────────── */
+function startClock(){
+  const pool=()=> Math.random()<0.6? mcItem(pick(Q)) : pick(CALCS)();
+  const st={left:60,score:0,xp:0,log:[],timer:null,over:false};
+  const next=()=>{
+    if(st.over) return;
+    const it=pool();
+    app.innerHTML=`<div class="hud"><div class="clock" id="clk">${st.left}s</div><div class="xp">${st.score} right</div><button class="quit" id="quit">Stop</button></div>
+      <div class="timebar"><div id="tb" style="width:${st.left/60*100}%"></div></div>
+      <div class="tagrow"><span class="kind k-${it.kind}">${it.label}</span></div><div class="card" id="card"></div>`;
+    app.querySelector('#quit').onclick=end;
+    it.mount(app.querySelector('#card'),(ok,info)=>{
+      st.log.push({it,ok,info}); if(ok){st.score++;st.xp+=5;}
+      app.querySelector('#card').classList.add(ok?'pulse-ok':'pulse-bad');
+      setTimeout(next, ok?350:900);
+    });
+  };
+  const end=()=>{ if(st.over) return; st.over=true; clearInterval(st.timer);
+    run={newBadges:[]}; save.xp+=st.xp; save.clockBest=Math.max(save.clockBest||0,st.score); award('first'); if(st.score>=15) award('clock');
+    save.stats.calc=(save.stats.calc||0)+st.log.filter(l=>l.ok&&l.it.kind==='calc').length; if(save.stats.calc>=10) award('mm'); persist();
+    const missed=st.log.filter(l=>!l.ok);
+    app.innerHTML=`<p class="tag">Beat the clock</p><h2 class="big-h">Time's up</h2>
+      <div class="scoreline"><span class="score">${st.score}</span><span class="xpwin">+${st.xp} XP</span></div><p class="muted">Best: ${save.clockBest}</p>
+      ${run.newBadges.length?`<h3>New badges</h3><div class="badges">${run.newBadges.map(id=>badgeHTML(BADGES.find(b=>b.id===id),true,true)).join('')}</div>`:''}
+      ${missed.length?`<h3>Go over these</h3>${missed.map(l=>`<div class="miss"><p><b>${esc(l.it.prompt)}</b></p><p class="ans">${esc(l.info.answer)}</p><p class="muted">${esc(l.info.why)}</p></div>`).join('')}`:''}
+      <div class="row"><button class="next" id="again" style="margin:0">Go again</button><button class="ghost" id="home">Back to the yard</button></div>`;
+    app.querySelector('#again').onclick=startClock; app.querySelector('#home').onclick=home; window.scrollTo(0,0);
+  };
+  st.timer=setInterval(()=>{ st.left--; const c=document.getElementById('clk'), b=document.getElementById('tb'); if(c) c.textContent=st.left+'s'; if(b) b.style.width=(st.left/60*100)+'%'; if(st.left<=0) end(); },1000);
+  next();
+}
+
+/* ───────────────────────── HOME (THE YARD) ───────────────────────── */
+function badgeHTML(b,got,fresh){ return `<div class="badge ${got?'got':''} ${fresh?'fresh':''}" title="${esc(b.desc)}"><span class="medal">${got?'★':'·'}</span><span><b>${esc(b.name)}</b><small>${esc(b.desc)}</small></span></div>`; }
+function rankCard(){
+  const r=rankOf(save.xp); const span=r.next?r.next[0]-r.floor:1, into=save.xp-r.floor, pct=r.next?Math.min(100,into/span*100):100;
+  return `<div class="rank"><div class="rankhead"><span><small>${esc(save.name||'Your rank')}</small><b>${r.name}</b></span><span class="xptotal">${save.xp} XP</span></div>
+    <div class="tape thin"><div class="fill" style="width:${pct}%"></div><div class="mark" style="left:calc(${pct}% - 2px)"></div><span class="read">${r.next?`${r.next[0]-save.xp} XP to ${r.next[1]}`:'Top rank'}</span></div></div>`;
+}
+function home(){
+  run=null;
+  const counts={}; Q.forEach(q=>counts[q.t]=(counts[q.t]||0)+1);
+  app.innerHTML=`
+    <section class="hero"><h1>Fitter's test</h1><p class="muted">House of Kitchens apprentice training. Earn XP, keep your hard hats, work your way up to lead fitter.</p></section>
+    <label class="field"><span>Your name</span><input type="text" id="name" value="${esc(save.name)}" placeholder="So Marcus knows whose score it is" autocomplete="given-name"></label>
+    ${rankCard()}
+    <button class="big" id="shift"><strong>Start today's shift</strong><span>12 mixed jobs: questions, drawings, make-ups, snagging. 3 hard hats.</span></button>
+    <button class="big alt" id="clock"><strong>Beat the clock</strong><span>60 seconds, as many as you can. Best: ${save.clockBest||0}</span></button>
+    <h2>Job cards</h2><p class="muted small">Ten jobs on one section. Score 90% for three stars.</p>
+    <div class="topics">${Object.entries(TOPICS).map(([k,v])=>`<button class="topic" data-t="${k}"><span><b>${v}</b><small>${counts[k]||0} questions${['setout','doors','ovens','tops','panels','install','hinges','safety'].includes(k)?' + drawings & tasks':''}</small></span><span class="st">${[1,2,3].map(i=>`<span class="${i<=(save.stars[k]||0)?'on':''}">★</span>`).join('')}</span></button>`).join('')}</div>
+    <h2>Badges <small class="muted">${save.badges.length} / ${BADGES.length}</small></h2>
+    <div class="badges">${BADGES.map(b=>badgeHTML(b,save.badges.includes(b.id))).join('')}</div>
+    ${(save.flags||[]).length?`<h2>Flagged as unclear <small class="muted">${save.flags.length}</small></h2><p class="muted small">Questions marked as unclear during training. Copy the list and send it to Marcus.</p><ol class="flags">${save.flags.map(f=>`<li>${esc(f.q)}<small>${esc(f.t)} · ${esc(f.d)}</small></li>`).join('')}</ol><div class="row2"><button class="ghost sm" id="copyflags">Copy list</button><button class="ghost sm" id="clearflags">Clear list</button></div>`:''}
+    <p class="foot">Progress is saved on this device. Appliance and hardware answers are good practice: the manufacturer's instructions always come first.</p>
+    <button class="reset" id="reset">Reset progress</button>`;
+  app.querySelector('#name').oninput=e=>{save.name=e.target.value.trim();persist();};
+  app.querySelector('#shift').onclick=()=>startRun('shift');
+  const cf=app.querySelector('#copyflags'); if(cf){ cf.onclick=async()=>{ const txt=save.flags.map((f,i)=>`${i+1}. ${f.q} (${f.t})`).join('\n'); try{ await navigator.clipboard.writeText(txt); cf.textContent='Copied'; }catch(e){ prompt('Copy this list:',txt); } };
+    app.querySelector('#clearflags').onclick=()=>{ if(confirm('Clear the flagged list?')){ save.flags=[]; persist(); home(); } }; }
+  app.querySelector('#clock').onclick=startClock;
+  app.querySelectorAll('.topic').forEach(b=>b.onclick=()=>startRun('job',b.dataset.t));
+  app.querySelector('#reset').onclick=()=>{ if(confirm('Reset all XP, stars and badges on this device?')){ save=Object.assign(loadSave(),{xp:0,badges:[],stars:{},stats:{diagram:0,spot:0,build:0,calc:0,shifts:0},clockBest:0}); persist(); home(); } };
+}
+home();
+</script>
+</body>
+</html>
