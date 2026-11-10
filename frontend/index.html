@@ -42,12 +42,15 @@
   .btn{background:var(--navy); color:#fff; border:none; padding:10px 18px; border-radius:4px; cursor:pointer; font-weight:600; font-family:inherit;}
   .btn.copper{background:var(--copper);} .btn.ghost{background:#fff; color:var(--navy); border:1px solid var(--line);}
   #results{display:none;}
+  .test{display:none; color:var(--dim); font-size:12px;}
+  body.testing .test{display:table-cell;}
+  .testtoggle{font-size:12px; color:var(--dim); display:flex; align-items:center; gap:6px; margin-left:auto;}
   .printhead{display:none;}
   @media print{
     @page{size:A4; margin:12mm;}
     html,body{height:auto;} body{display:block; overflow:visible; background:#fff;}
     #scroller{overflow:visible;}
-    .topbar,.setup,.toolbar,.status{display:none !important;}
+    .topbar,.setup,.toolbar,.status,.test{display:none !important;}
     .printhead{display:block; margin-bottom:6px;}
     main{padding:0; max-width:none;}
     h2{break-after:avoid;} tr{break-inside:avoid;}
@@ -88,6 +91,7 @@
     <div class="toolbar">
       <button class="btn copper" id="printBtn">Print / save as PDF</button>
       <button class="btn ghost" id="csvBtn">Download CSV</button>
+      <label class="testtoggle"><input type="checkbox" id="testToggle"> Show testing info (Winner codes, which unit each front is for)</label>
     </div>
   </div>
 
@@ -147,24 +151,33 @@ function fronts(){
   const agg = {};
   result.doors_and_trim.doors.forEach(d => d.fronts.forEach(f => {
     const k = `${f.type}|${f.height_mm}|${f.width_mm}|${f.standard_size === false}`;
-    agg[k] = agg[k] || {f, qty:0, cabs:[]}; agg[k].qty += f.qty; agg[k].cabs.push(d.cabinet_code);
+    agg[k] = agg[k] || {f, qty:0, cabs:[]}; agg[k].qty += f.qty; agg[k].cabs.push(`${d.order_code} (${d.cabinet_code})`);
   }));
   return Object.values(agg).sort((a, b) => a.f.type.localeCompare(b.f.type) || b.f.height_mm - a.f.height_mm || b.f.width_mm - a.f.width_mm);
 }
 function panelOrder(p){
   const o = p.panel_order && Object.entries(p.panel_order.standard_options || {}).find(([, v]) => v);
-  return o ? `${o[1][0]} × ${o[1][1]} (${o[0]})` : 'MTM';
+  return o ? {type:o[0], h:o[1][0], w:o[1][1]} : null;
 }
-// Winner keeps the standard code/description when a unit is resized
-// (e.g. "600 Wall 900 High" drawn 500 wide), so flag the difference.
-function resized(c){
-  const notes = [];
-  const w = (c.description.match(/^\s*(\d{3,4})\b/) || [])[1];
-  const h = (c.description.match(/(\d{3,4})\s*High/i) || [])[1];
-  if (w && Math.abs(+w - c.width_mm) > 10) notes.push(`${c.width_mm} wide (code says ${w})`);
-  if (h && Math.abs(+h - c.height_mm) > 10) notes.push(`${c.height_mm} high (code says ${h})`);
-  return notes.length ? ` <span class="mtm">resized: ${notes.join(', ')}</span>` : '';
+// identical units on one line with a qty
+function cabinetLines(list){
+  const agg = {};
+  list.forEach(c => {
+    const k = [c.order_code, c.order_description, c.width_mm, c.height_mm, c.depth_mm].join('|');
+    agg[k] = agg[k] || {c, qty:0, winner:[]}; agg[k].qty++; agg[k].winner.push(c.code);
+  });
+  return Object.values(agg).sort((a, b) => b.c.width_mm - a.c.width_mm || a.c.order_code.localeCompare(b.c.order_code));
 }
+function panelLines(){
+  const agg = {};
+  result.doors_and_trim.panels.forEach(p => {
+    const o = panelOrder(p);
+    const k = o ? `${o.type}|${o.h}|${o.w}` : `MTM|${p.panel_order ? p.panel_order.actual_height_mm : p.height_mm}|${p.panel_order ? p.panel_order.actual_face_width_mm : ''}`;
+    agg[k] = agg[k] || {o, p, qty:0, winner:[]}; agg[k].qty++; agg[k].winner.push(`${p.code} (drawn ${p.panel_order ? p.panel_order.actual_height_mm + ' × ' + p.panel_order.actual_face_width_mm : p.height_mm})`);
+  });
+  return Object.values(agg);
+}
+const uniq = a => [...new Set(a)];
 function render(){
   const r = result, dt = r.doors_and_trim;
   $('results').style.display = 'block';
@@ -173,20 +186,23 @@ function render(){
   let h = '', n = 0;
   [['base','Base'],['wall','Wall'],['tall','Tall']].forEach(([k, l]) => {
     const list = r.cabinets[k] || []; if (!list.length) return; n += list.length;
-    h += `<h3>${l} (${list.length})</h3><table><tr><th>Code</th><th>Description</th><th class="num">W</th><th class="num">H</th><th class="num">D</th></tr>` +
-      list.map(c => `<tr><td class="code">${esc(c.code)}</td><td>${esc(c.description)}${resized(c)}</td><td class="num">${c.width_mm}</td><td class="num">${c.height_mm}</td><td class="num">${c.depth_mm}</td></tr>`).join('') + '</table>';
+    h += `<h3>${l} (${list.length})</h3><table><tr><th class="num">Qty</th><th>Code</th><th>Description</th><th class="num">Width</th><th class="num">Height</th><th class="num">Depth</th><th class="test">Winner code</th></tr>` +
+      cabinetLines(list).map(a => `<tr><td class="num">${a.qty}</td><td class="code">${esc(a.c.order_code)}</td><td>${esc(a.c.order_description)}</td><td class="num">${a.c.width_mm}</td><td class="num">${a.c.height_mm}</td><td class="num">${a.c.depth_mm}</td><td class="test">${esc(uniq(a.winner).join(', '))}</td></tr>`).join('') + '</table>';
   });
   $('cabinets').innerHTML = h; $('cabCount').textContent = n + ' cabinets';
 
   const fr = fronts(); const total = fr.reduce((s, a) => s + a.qty, 0);
   $('fronts').innerHTML = (doorLabel() ? `<div class="hint" style="margin:0 0 8px;">Door: <strong>${esc(doorLabel())}</strong></div>` : '') +
-    `<table><tr><th>Type</th><th class="num">H × W</th><th class="num">Qty</th><th>For</th></tr>` +
-    fr.map(a => `<tr><td>${esc(a.f.type.replace(/_/g,' '))}${a.f.standard_size === false ? ' <span class="mtm">MTM</span>' : ''}</td><td class="num">${a.f.height_mm} × ${a.f.width_mm}</td><td class="num">${a.qty}</td><td>${esc(a.cabs.join(', '))}</td></tr>`).join('') + '</table>';
+    `<table><tr><th class="num">Qty</th><th>Type</th><th class="num">Height</th><th class="num">Width</th><th class="test">For</th></tr>` +
+    fr.map(a => `<tr><td class="num">${a.qty}</td><td>${esc(a.f.type.replace(/_/g,' '))}${a.f.standard_size === false ? ' <span class="mtm">MTM</span>' : ''}</td><td class="num">${a.f.height_mm}</td><td class="num">${a.f.width_mm}</td><td class="test">${esc(a.cabs.join(', '))}</td></tr>`).join('') + '</table>';
   $('frontCount').textContent = total + ' fronts';
 
-  $('panels').innerHTML = dt.panels.length
-    ? `<table><tr><th>Code</th><th>Description</th><th class="num">Height</th><th>Order size</th></tr>` +
-      dt.panels.map(p => `<tr><td class="code">${esc(p.code)}</td><td>${esc(p.description)}</td><td class="num">${p.panel_order ? p.panel_order.actual_height_mm : p.height_mm}</td><td>${esc(panelOrder(p))}</td></tr>`).join('') + '</table>'
+  const pl = panelLines();
+  $('panels').innerHTML = pl.length
+    ? `<table><tr><th class="num">Qty</th><th>Panel</th><th class="num">Height</th><th class="num">Width</th><th class="test">From model</th></tr>` +
+      pl.map(a => a.o
+        ? `<tr><td class="num">${a.qty}</td><td>${esc(a.o.type)}</td><td class="num">${a.o.h}</td><td class="num">${a.o.w}</td><td class="test">${esc(a.winner.join(', '))}</td></tr>`
+        : `<tr><td class="num">${a.qty}</td><td>End panel <span class="mtm">MTM</span></td><td class="num">${a.p.panel_order ? a.p.panel_order.actual_height_mm : a.p.height_mm}</td><td class="num">${a.p.panel_order ? a.p.panel_order.actual_face_width_mm : ''}</td><td class="test">${esc(a.winner.join(', '))}</td></tr>`).join('') + '</table>'
     : '<p class="hint">No panels in the model.</p>';
   $('panelCount').textContent = dt.panels.length + ' panels';
 
@@ -196,29 +212,31 @@ function render(){
     $('kickCount').textContent = `${kb.lengths_required} × 3m lengths · ${(kb.total_length_mm/1000).toFixed(2)}m`;
     $('kick').innerHTML = `<table><tr><th>Length</th><th>Cuts (mm)</th></tr>` +
       kb.cut_plan_mm.map((c, i) => `<tr><td>Length ${i + 1}</td><td>${c.join(' + ')}</td></tr>`).join('') + '</table>' +
-      (fl.length ? `<p class="hint">Includes fillers cut from kickboard: ${fl.map(f => `${esc(f.code)} ${f.width_mm} wide × ${f.length_mm}`).join(', ')}.</p>` : '') +
+      (fl.length ? `<p class="hint">Includes ${fl.length} filler${fl.length > 1 ? 's' : ''} cut from kickboard: ${fl.map(f => `${f.width_mm} wide × ${f.length_mm}`).join(', ')}.</p>` : '') +
       (result.summary && result.summary.corner_units ? `<p class="hint">Includes ${result.summary.corner_units} × 1.5m corner filler allowance.</p>` : '');
   }
   const sb = dt.splashbacks || [];
   $('splashWrap').style.display = sb.length ? '' : 'none';
-  $('splash').innerHTML = `<table><tr><th>Code</th><th class="num">Width</th><th class="num">Height</th><th class="num">Thickness</th></tr>` +
-    sb.map(x => `<tr><td class="code">${esc(x.code)}</td><td class="num">${x.width_mm}</td><td class="num">${x.height_mm}</td><td class="num">${x.thickness_mm}</td></tr>`).join('') + '</table>';
+  $('splash').innerHTML = `<table><tr><th class="num">Qty</th><th class="num">Width</th><th class="num">Height</th><th class="num">Thickness</th><th class="test">Winner code</th></tr>` +
+    sb.map(x => `<tr><td class="num">1</td><td class="num">${x.width_mm}</td><td class="num">${x.height_mm}</td><td class="num">${x.thickness_mm}</td><td class="test">${esc(x.code)}</td></tr>`).join('') + '</table>';
   $('splashCount').textContent = sb.length ? `${sb.length} pieces · ${dt.splashback_area_m2} m²` : '';
 
   $('notCatalogued').innerHTML = dt.doors_not_catalogued && dt.doors_not_catalogued.length
     ? `<div class="warn"><strong>No front sizes worked out for:</strong> ${dt.doors_not_catalogued.map(esc).join(', ')}. Add those fronts by hand.</div>` : '';
 }
+$('testToggle').onchange = e => document.body.classList.toggle('testing', e.target.checked);
 
 $('printBtn').onclick = () => { const t = document.title; document.title = `Order list - ${fileName}`; window.print(); document.title = t; };
 $('csvBtn').onclick = () => {
   if (!result) return;
-  const rows = [['Section','Code / type','Description / size','W','H','D / qty']];
-  ['base','wall','tall'].forEach(g => (result.cabinets[g] || []).forEach(c => rows.push(['Cabinet ' + g, c.code, c.description, c.width_mm, c.height_mm, c.depth_mm])));
-  fronts().forEach(a => rows.push(['Front', a.f.type + (a.f.standard_size === false ? ' (MTM)' : ''), a.cabs.join(' '), a.f.width_mm, a.f.height_mm, a.qty]));
-  result.doors_and_trim.panels.forEach(p => rows.push(['Panel', p.code, p.description + ' – order ' + panelOrder(p), '', p.height_mm, 1]));
-  (result.doors_and_trim.fillers || []).forEach(f => rows.push(['Filler (from kickboard)', f.code, f.description, f.width_mm, f.length_mm, 1]));
-  { const kb = (result.doors_and_trim.trim_cutting || {}).Kickboard; if (kb) rows.push(['Kickboard', '3m lengths', (kb.total_length_mm/1000).toFixed(2) + 'm total', '', '', kb.lengths_required]); }
-  (result.doors_and_trim.splashbacks || []).forEach(x => rows.push(['Splashback', x.code, x.description, x.width_mm, x.height_mm, 1]));
+  const dt = result.doors_and_trim;
+  const rows = [['Section','Qty','Code / type','Description','Width','Height','Depth / thickness']];
+  ['base','wall','tall'].forEach(g => cabinetLines(result.cabinets[g] || []).forEach(a => rows.push(['Cabinet ' + g, a.qty, a.c.order_code, a.c.order_description, a.c.width_mm, a.c.height_mm, a.c.depth_mm])));
+  fronts().forEach(a => rows.push(['Front', a.qty, a.f.type.replace(/_/g,' ') + (a.f.standard_size === false ? ' (MTM)' : ''), '', a.f.width_mm, a.f.height_mm, '']));
+  panelLines().forEach(a => a.o ? rows.push(['Panel', a.qty, a.o.type, '', a.o.w, a.o.h, ''])
+    : rows.push(['Panel', a.qty, 'End panel (MTM)', '', a.p.panel_order ? a.p.panel_order.actual_face_width_mm : '', a.p.panel_order ? a.p.panel_order.actual_height_mm : a.p.height_mm, '']));
+  { const kb = (dt.trim_cutting || {}).Kickboard; if (kb) rows.push(['Kickboard', kb.lengths_required, '3m lengths', (kb.total_length_mm/1000).toFixed(2) + 'm total incl. fillers', '', '', '']); }
+  (dt.splashbacks || []).forEach(x => rows.push(['Splashback', 1, '', '', x.width_mm, x.height_mm, x.thickness_mm]));
   const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `${fileName}-order-list.csv`; document.body.appendChild(a); a.click(); a.remove();
 };
