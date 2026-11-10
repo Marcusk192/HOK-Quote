@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>House of Kitchens — Cabinet Layout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#1f2529; --copper:#c08a52; --paper:#f6f4f0; --line:#ddd8cf; --line-2:#ece8e1; --text:#33383d; --dim:#7a7f84; --err:#b4544a;}
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0; font-family:'Montserrat',sans-serif; font-size:13px; color:var(--text); background:var(--paper); display:flex; flex-direction:column; overflow:hidden;}
+  .topbar{flex:none; background:var(--navy); color:#fff; display:flex; align-items:center; gap:12px; padding:10px 18px;}
+  .topbar img{height:36px; width:36px; border-radius:4px;}
+  .topbar h1{font-size:15px; margin:0; font-weight:600;}
+  .topbar .sp{flex:1;}
+  .topbar button{background:transparent; color:#fff; border:1px solid #4a535a; border-radius:4px; padding:6px 11px; cursor:pointer; font:inherit; font-size:12px;}
+  .topbar button:hover{border-color:var(--copper);}
+  .wrap{flex:1; display:grid; grid-template-columns:360px 1fr; min-height:0;}
+  .side{overflow-y:auto; border-right:1px solid var(--line); background:#fff; padding:14px 16px 40px;}
+  .main{overflow:auto; padding:18px 22px 40px;}
+  h2{font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--navy); margin:18px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line);}
+  h2:first-child{margin-top:0;}
+  label{display:block; font-size:11px; font-weight:600; color:var(--dim); margin:0 0 3px;}
+  input,select{width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:4px; font:inherit; background:#fff;}
+  input:focus,select:focus{outline:none; border-color:var(--copper);}
+  .g2{display:grid; grid-template-columns:1fr 1fr; gap:8px;} .g3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;} .g4{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+  .g2 > div,.g3 > div,.g4 > div{min-width:0;}
+  .btn{background:var(--navy); color:#fff; border:none; border-radius:4px; padding:7px 11px; cursor:pointer; font:inherit; font-weight:600; font-size:12px;}
+  .btn.c{background:var(--copper);} .btn.g{background:#fff; color:var(--navy); border:1px solid var(--line);}
+  .btn.s{padding:4px 8px; font-size:11px;}
+  .row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  .units{display:flex; gap:6px; flex-wrap:wrap;}
+  .utab{border:1px solid var(--line); background:#fff; border-radius:4px; padding:6px 10px; cursor:pointer; font-weight:600; font-size:12px;}
+  .utab.on{background:var(--copper); border-color:var(--copper); color:#fff;}
+  .col{border:1px solid var(--line); border-radius:6px; padding:10px; margin-top:10px; background:#fbfaf8;}
+  .col h3{margin:0 0 8px; font-size:12px; color:var(--copper); display:flex; justify-content:space-between; align-items:center;}
+  .item{display:grid; grid-template-columns:78px 1fr 1fr 22px; gap:6px; align-items:end; margin-top:6px;}
+  .item .t{font-weight:600; font-size:12px; padding-bottom:7px;}
+  .x{background:none; border:none; color:var(--err); font-size:17px; cursor:pointer; padding:0 0 6px;}
+  .hint{font-size:11px; color:var(--dim); margin-top:5px; line-height:1.4;}
+  .warn{color:var(--err); font-size:11px; font-weight:600; margin-top:5px;}
+  .sheet{background:#fff; border:1px solid var(--line); border-radius:6px; padding:16px; margin-bottom:18px;}
+  .sheet h3{margin:0 0 4px; font-size:15px; color:var(--navy);}
+  .sheet .sub{color:var(--dim); font-size:12px; margin-bottom:10px;}
+  svg{display:block; width:100%; height:auto;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th{text-align:left; font-size:10px; text-transform:uppercase; color:var(--dim); padding:6px 8px; border-bottom:1px solid var(--line);}
+  td{padding:5px 8px; border-bottom:1px solid var(--line-2);}
+  .num{text-align:right; white-space:nowrap;}
+  @media print{
+    @page{size:A4 landscape; margin:10mm;}
+    html,body{height:auto;} body{display:block; overflow:visible; background:#fff;}
+    .topbar,.side{display:none !important;}
+    .wrap{display:block;} .main{overflow:visible; padding:0;}
+    .sheet{border:none; padding:0; break-inside:avoid;}
+    .noprint{display:none !important;}
+  }
+  @media (max-width:820px){ .wrap{grid-template-columns:1fr; overflow-y:auto;} .side,.main{overflow:visible;} body{overflow:auto;} }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="logo.png" alt="">
+  <h1>Cabinet Layout</h1>
+  <div class="sp"></div>
+  <button id="bPrint">Print / PDF</button>
+  <button id="bSave">Save file</button>
+  <button id="bOpen">Open file</button>
+  <button id="bNew">New</button>
+  <input type="file" id="fOpen" accept=".json" style="display:none;">
+</div>
+<div class="wrap">
+  <div class="side">
+    <h2>Job</h2>
+    <div class="g2">
+      <div><label>Job / client</label><input id="jName" placeholder="e.g. Brian Skully"></div>
+      <div><label>Room</label><input id="jRoom" placeholder="e.g. Main bedroom"></div>
+    </div>
+    <div class="g3" style="margin-top:8px;">
+      <div><label>Board (mm)</label><input type="number" id="jBoard"></div>
+      <div><label>Shelf set back</label><input type="number" id="jSet"></div>
+      <div><label>Back panel</label><select id="jBack"><option value="8">8mm</option><option value="18">18mm</option><option value="0">None</option></select></div>
+    </div>
+    <div class="hint">Shelf set back is how far shelves sit back from the front edge. Back panel thickness comes off shelf and divider depth.</div>
+
+    <h2>Units in the run</h2>
+    <div class="units" id="uTabs"></div>
+    <div class="row">
+      <select id="addType" style="width:auto; flex:1;">
+        <option value="wardrobe">Wardrobe 600 × 2250 × 600</option>
+        <option value="base">Base unit 600 × 720 × 560</option>
+        <option value="wall">Wall unit 600 × 720 × 330</option>
+        <option value="tall">Tall unit 600 × 2150 × 560</option>
+      </select>
+      <button class="btn c" id="bAdd">+ Add unit</button>
+    </div>
+
+    <div id="uEdit"></div>
+  </div>
+
+  <div class="main">
+    <div class="sheet">
+      <h3 id="sTitle">Front view</h3>
+      <div class="sub" id="sSub"></div>
+      <div id="draw"></div>
+      <div class="hint noprint">Heights on the right of each section are the clear gaps between shelves, measured inside the carcass. All sizes in mm.</div>
+    </div>
+    <div class="sheet">
+      <h3>Cut list</h3>
+      <div class="sub" id="cSub"></div>
+      <div id="cut"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+const num = (v, d = 0) => { const n = parseFloat(v); return isNaN(n) ? d : n; };
+const PRESETS = {
+  wardrobe:{label:'Wardrobe', w:600, h:2250, d:600, items:[{t:'shelf', at:1900}, {t:'rail', at:1840}]},
+  base:{label:'Base', w:600, h:720, d:560, items:[{t:'shelf', at:340}]},
+  wall:{label:'Wall', w:600, h:720, d:330, items:[{t:'shelf', at:340}]},
+  tall:{label:'Tall', w:600, h:2150, d:560, items:[{t:'shelf', at:700}, {t:'shelf', at:1100}, {t:'shelf', at:1500}]},
+};
+
+// ---------------------------------------------------------------- state
+let S, cur = 0;
+function fresh(){ return {job:'', room:'', board:18, setback:20, back:8, units:[]}; }
+function newUnit(type){
+  const p = PRESETS[type];
+  return {name:`${p.label} ${S.units.length + 1}`, type, w:p.w, h:p.h, d:p.d, cols:[{w:'', items:JSON.parse(JSON.stringify(p.items))}]};
+}
+function save(){ try { localStorage.setItem('hok_cab_layout', JSON.stringify(S)); } catch(e){} }
+function load(){ try { const s = JSON.parse(localStorage.getItem('hok_cab_layout')); if (s && s.units) return s; } catch(e){} return null; }
+
+// ---------------------------------------------------------------- geometry
+// All heights for items are measured from the top face of the bottom board (inside the carcass).
+function geo(u){
+  const t = S.board, n = u.cols.length;
+  const innerW = u.w - 2 * t, innerH = u.h - 2 * t;
+  const fixed = u.cols.map(c => num(c.w, 0));
+  const fixedSum = fixed.reduce((a, b) => a + b, 0);
+  const free = fixed.filter(x => !x).length;
+  const avail = innerW - (n - 1) * t;
+  const each = free ? (avail - fixedSum) / free : 0;
+  const widths = fixed.map(x => x || each);
+  let x = t;
+  const cols = widths.map((w, i) => { const c = {x, w, i}; x += w + t; return c; });
+  const err = Math.abs(widths.reduce((a, b) => a + b, 0) - avail) > 0.5 || widths.some(w => w < 50)
+    ? `Section widths add up to ${Math.round(widths.reduce((a, b) => a + b, 0))}, but ${Math.round(avail)} is available inside.` : '';
+  return {t, innerW, innerH, cols, err};
+}
+// Expand items into drawn pieces for one column (bottom-up heights inside the carcass)
+function pieces(u, col){
+  const t = S.board, innerH = u.h - 2 * t, out = [];
+  (u.cols[col].items || []).forEach(it => {
+    if (it.t === 'shelf') out.push({k:'shelf', y:num(it.at)});
+    if (it.t === 'even') {
+      const n = Math.max(1, Math.round(num(it.n, 1))), from = num(it.from, 0), to = num(it.to, innerH);
+      const gap = (to - from - n * t) / (n + 1);
+      for (let i = 1; i <= n; i++) out.push({k:'shelf', y:from + i * gap + (i - 1) * t});
+    }
+    if (it.t === 'rail') out.push({k:'rail', y:num(it.at)});
+    if (it.t === 'drawers') {
+      const n = Math.max(1, Math.round(num(it.n, 1))), from = num(it.from, 0), hh = num(it.hgt, 600);
+      out.push({k:'drawers', y:from, h:hh, n});
+      if (it.cap) out.push({k:'shelf', y:from + hh, cap:true});
+    }
+  });
+  return out.sort((a, b) => a.y - b.y);
+}
+
+// ---------------------------------------------------------------- drawing
+function drawRun(){
+  if (!S.units.length) { $('draw').innerHTML = '<p class="hint">Add a unit to start.</p>'; return; }
+  const gapBetween = 0;
+  const total = S.units.reduce((s, u) => s + u.w, 0) + gapBetween * (S.units.length - 1);
+  const maxH = Math.max(...S.units.map(u => u.h));
+  const padL = 60, padR = 260, padT = 110, padB = 130;
+  const W = total + padL + padR, H = maxH + padT + padB;
+  const fs = Math.max(22, Math.round(maxH / 55));      // text size scales with the drawing
+  const y0 = padT + maxH;                               // floor line
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Montserrat, Arial" font-size="${fs}">`;
+  svg += `<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="${fs*0.55}" markerHeight="${fs*0.55}" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>`;
+  const dimH = (x1, x2, y, label, off = 0) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#555" stroke-width="${fs/12}" marker-start="url(#a)" marker-end="url(#a)"/>` +
+    `<text x="${(x1 + x2) / 2}" y="${y - fs * 0.35 + off}" text-anchor="middle" fill="#222">${label}</text>`;
+  const dimV = (x, y1, y2, label, col = '#555') => `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${col}" stroke-width="${fs/12}" marker-start="url(#a)" marker-end="url(#a)"/>` +
+    `<text x="${x + fs * 0.35}" y="${(y1 + y2) / 2 + fs * 0.35}" fill="${col === '#555' ? '#222' : col}" font-size="${fs * 0.85}">${label}</text>`;
+  let x0 = padL;
+  S.units.forEach((u, ui) => {
+    const g = geo(u), t = g.t, top = y0 - u.h, sel = ui === cur;
+    const wood = '#e8d9c4', edge = '#8a6a48';
+    // carcass boards
+    svg += `<rect x="${x0}" y="${top}" width="${u.w}" height="${u.h}" fill="#fbf8f3" stroke="${sel ? '#c08a52' : edge}" stroke-width="${sel ? fs/5 : fs/10}"/>`;
+    [[x0, top, t, u.h], [x0 + u.w - t, top, t, u.h], [x0 + t, top, u.w - 2 * t, t], [x0 + t, y0 - t, u.w - 2 * t, t]]
+      .forEach(([x, y, w, h]) => svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${wood}" stroke="${edge}" stroke-width="${fs/16}"/>`);
+    // dividers
+    g.cols.slice(0, -1).forEach(c => svg += `<rect x="${x0 + c.x + c.w}" y="${top + t}" width="${t}" height="${u.h - 2 * t}" fill="${wood}" stroke="${edge}" stroke-width="${fs/16}"/>`);
+    // contents per section
+    g.cols.forEach((c, ci) => {
+      const cx = x0 + c.x, inBot = y0 - t, ps = pieces(u, ci);
+      const marks = [0];   // heights that bound clear gaps
+      ps.forEach(p => {
+        if (p.k === 'shelf') {
+          svg += `<rect x="${cx}" y="${inBot - p.y - t}" width="${c.w}" height="${t}" fill="${wood}" stroke="${edge}" stroke-width="${fs/16}"/>`;
+          marks.push(p.y, p.y + t);
+        }
+        if (p.k === 'rail') {
+          svg += `<line x1="${cx + 15}" y1="${inBot - p.y}" x2="${cx + c.w - 15}" y2="${inBot - p.y}" stroke="#777" stroke-width="${fs/3}" stroke-linecap="round"/>` +
+                 `<text x="${cx + c.w / 2}" y="${inBot - p.y + fs * 1.2}" text-anchor="middle" fill="#666" font-size="${fs * 0.75}">rail @ ${Math.round(p.y)}</text>`;
+        }
+        if (p.k === 'drawers') {
+          const dh = p.h / p.n;
+          for (let i = 0; i < p.n; i++) {
+            const yy = inBot - p.y - (i + 1) * dh;
+            svg += `<rect x="${cx + 4}" y="${yy + 4}" width="${c.w - 8}" height="${dh - 8}" fill="#f1ece4" stroke="#999" stroke-width="${fs/16}"/>` +
+                   `<line x1="${cx + c.w / 2 - 40}" y1="${yy + dh / 2}" x2="${cx + c.w / 2 + 40}" y2="${yy + dh / 2}" stroke="#777" stroke-width="${fs/6}" stroke-linecap="round"/>`;
+          }
+          svg += `<text x="${cx + c.w / 2}" y="${inBot - p.y - p.h + fs * 1.3}" text-anchor="middle" fill="#666" font-size="${fs * 0.7}">${p.n} drawers in ${Math.round(p.h)}</text>`;
+          marks.push(p.y, p.y + p.h);
+        }
+      });
+      marks.push(g.innerH);
+      // clear gaps between solid things, chained up the section
+      const m = [...new Set(marks.map(v => Math.round(v * 10) / 10))].sort((a, b) => a - b);
+      const dx = cx + c.w - fs * 1.6;
+      for (let i = 0; i < m.length - 1; i++) {
+        const a = m[i], b = m[i + 1];
+        const isBoard = ps.some(p => p.k === 'shelf' && Math.abs(p.y - a) < 0.2 && Math.abs(p.y + t - b) < 0.2);
+        const isDrawer = ps.some(p => p.k === 'drawers' && Math.abs(p.y - a) < 0.2 && Math.abs(p.y + p.h - b) < 0.2);
+        if (isBoard || isDrawer || b - a < 1) continue;
+        svg += dimV(dx, inBot - b, inBot - a, Math.round(b - a), '#2c6e9b');
+      }
+      svg += dimH(cx, cx + c.w, top + t + fs * 1.4, Math.round(c.w));
+    });
+    // overall unit dims
+    svg += dimH(x0, x0 + u.w, top - fs * 0.9, `${u.name}: ${u.w}`);
+    svg += `<text x="${x0 + u.w / 2}" y="${y0 + fs * 1.4}" text-anchor="middle" fill="#666" font-size="${fs * 0.8}">${u.w} × ${u.h} × ${u.d} deep</text>`;
+    x0 += u.w + gapBetween;
+  });
+  // overall height (tallest) and run width
+  svg += dimV(padL + total + fs * 2.5, y0 - maxH, y0, maxH);
+  if (S.units.length > 1) svg += dimH(padL, padL + total, y0 + fs * 3.2, `Run ${total}`, fs * 1.6);
+  svg += `<line x1="${padL - 30}" y1="${y0}" x2="${padL + total + 30}" y2="${y0}" stroke="#999" stroke-width="${fs/10}" stroke-dasharray="${fs/2} ${fs/3}"/>`;
+  svg += '</svg>';
+  $('draw').innerHTML = svg;
+}
+
+// ---------------------------------------------------------------- cut list
+function cutList(){
+  const t = S.board, back = num(S.back, 0), rows = [];
+  const add = (unit, part, l, w, q, note = '') => {
+    const key = `${part}|${Math.round(l)}|${Math.round(w)}|${note}`;
+    const ex = rows.find(r => r.key === key && r.unit === unit);
+    if (ex) ex.q += q; else rows.push({key, unit, part, l:Math.round(l * 10) / 10, w:Math.round(w * 10) / 10, q, note});
+  };
+  S.units.forEach(u => {
+    const g = geo(u), dIn = u.d - back;
+    add(u.name, 'Side', u.h, u.d, 2);
+    add(u.name, 'Top / bottom', u.w - 2 * t, u.d, 2);
+    if (u.cols.length > 1) add(u.name, 'Divider', u.h - 2 * t, dIn, u.cols.length - 1);
+    g.cols.forEach((c, ci) => {
+      pieces(u, ci).forEach(p => {
+        if (p.k === 'shelf') add(u.name, p.cap ? 'Shelf (over drawers)' : 'Shelf', c.w, dIn - num(S.setback, 0), 1, `section ${ci + 1}`);
+        if (p.k === 'rail') add(u.name, 'Hanging rail', c.w, 0, 1, `section ${ci + 1}`);
+        if (p.k === 'drawers') add(u.name, `Drawer box (${p.n} in ${Math.round(p.h)})`, c.w, dIn, p.n, `section ${ci + 1}`);
+      });
+    });
+    if (back) add(u.name, `Back panel ${back}mm`, u.h, u.w, 1);
+  });
+  $('cut').innerHTML = rows.length ? `<table><tr><th>Unit</th><th>Part</th><th class="num">Length</th><th class="num">Width</th><th class="num">Qty</th><th>Note</th></tr>` +
+    rows.map(r => `<tr><td>${esc(r.unit)}</td><td>${esc(r.part)}</td><td class="num">${r.l}</td><td class="num">${r.w || '–'}</td><td class="num">${r.q}</td><td>${esc(r.note)}</td></tr>`).join('') + '</table>' : '';
+  $('cSub').textContent = `${S.board}mm board · shelves set back ${S.setback}mm · ${S.back ? S.back + 'mm back panel' : 'no back panel'}. Drawer boxes are listed as the space they go in, not cut sizes.`;
+}
+
+// ---------------------------------------------------------------- editor
+function renderTabs(){
+  $('uTabs').innerHTML = S.units.map((u, i) => `<button class="utab${i === cur ? ' on' : ''}" data-i="${i}">${esc(u.name)}</button>`).join('') || '<span class="hint">No units yet.</span>';
+  $('uTabs').querySelectorAll('.utab').forEach(b => b.onclick = () => { cur = +b.dataset.i; renderAll(); });
+}
+function field(lbl, path, val, type = 'number', extra = ''){
+  return `<div><label>${lbl}</label><input type="${type}" data-p="${path}" value="${esc(val)}" ${extra}></div>`;
+}
+function renderEdit(){
+  const u = S.units[cur];
+  if (!u) { $('uEdit').innerHTML = ''; return; }
+  const g = geo(u);
+  let h = `<h2>${esc(u.name)}</h2>
+    <div class="g2">${field('Name', 'name', u.name, 'text')}<div><label>&nbsp;</label><div class="row" style="margin:0;">
+      <button class="btn g s" id="uLeft">◀</button><button class="btn g s" id="uRight">▶</button>
+      <button class="btn g s" id="uCopy">Copy</button><button class="btn g s" id="uDel" style="color:var(--err);">Delete</button></div></div></div>
+    <div class="g3" style="margin-top:8px;">${field('Width', 'w', u.w)}${field('Height', 'h', u.h)}${field('Depth', 'd', u.d)}</div>
+    <div class="hint"><span id="insideTxt">Inside: ${Math.round(g.innerW)} wide × ${Math.round(g.innerH)} high.</span> Item heights are measured from the top of the bottom board.</div>
+    <div class="row"><label style="margin:0; align-self:center;">Sections across</label>
+      <select id="nCols" style="width:80px;">${[1,2,3,4,5,6].map(n => `<option${n === u.cols.length ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
+    <div class="warn" id="widthWarn">${esc(g.err)}</div>`;
+  u.cols.forEach((c, ci) => {
+    h += `<div class="col"><h3>Section ${ci + 1} · <span data-colw="${ci}">${Math.round(g.cols[ci].w)}</span> wide</h3>
+      ${u.cols.length > 1 ? `<div class="g2">${field('Width (blank = share)', `cols.${ci}.w`, c.w, 'number', 'placeholder="auto"')}</div>` : ''}`;
+    (c.items || []).forEach((it, ii) => {
+      const p = `cols.${ci}.items.${ii}`;
+      if (it.t === 'shelf') h += `<div class="item"><div class="t">Shelf</div>${field('Height', p + '.at', it.at)}<div></div><button class="x" data-del="${ci}.${ii}">×</button></div>`;
+      if (it.t === 'rail') h += `<div class="item"><div class="t">Rail</div>${field('Height', p + '.at', it.at)}<div></div><button class="x" data-del="${ci}.${ii}">×</button></div>`;
+      if (it.t === 'even') h += `<div class="item" style="grid-template-columns:78px 1fr 1fr 1fr 22px;"><div class="t">Even shelves</div>${field('How many', p + '.n', it.n)}${field('From', p + '.from', it.from)}${field('To', p + '.to', it.to)}<button class="x" data-del="${ci}.${ii}">×</button></div>`;
+      if (it.t === 'drawers') h += `<div class="item" style="grid-template-columns:78px 1fr 1fr 1fr 22px;"><div class="t">Drawers</div>${field('How many', p + '.n', it.n)}${field('From', p + '.from', it.from)}${field('Total high', p + '.hgt', it.hgt)}<button class="x" data-del="${ci}.${ii}">×</button></div>
+        <label style="margin-top:4px;"><input type="checkbox" data-cap="${ci}.${ii}" ${it.cap ? 'checked' : ''} style="width:auto; margin-right:5px;">Shelf over the drawers</label>`;
+    });
+    h += `<div class="row"><button class="btn g s" data-add="shelf" data-c="${ci}">+ Shelf</button><button class="btn g s" data-add="even" data-c="${ci}">+ Even shelves</button>
+      <button class="btn g s" data-add="rail" data-c="${ci}">+ Rail</button><button class="btn g s" data-add="drawers" data-c="${ci}">+ Drawers</button></div></div>`;
+  });
+  $('uEdit').innerHTML = h;
+
+  const ed = $('uEdit');
+  ed.querySelectorAll('[data-p]').forEach(el => el.onchange = () => {
+    const keys = el.dataset.p.split('.'); let o = u;
+    keys.slice(0, -1).forEach(k => o = o[k]);
+    const last = keys[keys.length - 1];
+    o[last] = el.type === 'number' ? (el.value === '' ? '' : num(el.value)) : el.value;
+    save(); refresh();
+  });
+  ed.querySelectorAll('[data-cap]').forEach(el => el.onchange = () => { const [ci, ii] = el.dataset.cap.split('.').map(Number); u.cols[ci].items[ii].cap = el.checked; save(); renderAll(); });
+  ed.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const [ci, ii] = b.dataset.del.split('.').map(Number); u.cols[ci].items.splice(ii, 1); save(); renderAll(); });
+  ed.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const c = u.cols[+b.dataset.c], ih = geo(u).innerH, k = b.dataset.add;
+    const it = k === 'shelf' ? {t:'shelf', at:Math.round(ih / 2)} : k === 'rail' ? {t:'rail', at:Math.max(0, Math.round(ih - 110))}
+      : k === 'even' ? {t:'even', n:3, from:0, to:Math.round(ih)} : {t:'drawers', n:3, from:0, hgt:Math.min(600, Math.round(ih)), cap:true};
+    c.items.push(it); save(); renderAll();
+  });
+  $('nCols').onchange = e => {
+    const n = +e.target.value;
+    while (u.cols.length < n) u.cols.push({w:'', items:JSON.parse(JSON.stringify(PRESETS[u.type].items))});
+    u.cols.length = n; u.cols.forEach(c => c.w = c.w); save(); renderAll();
+  };
+  $('uDel').onclick = () => { if (confirm(`Delete ${u.name}?`)) { S.units.splice(cur, 1); cur = Math.max(0, cur - 1); save(); renderAll(); } };
+  $('uCopy').onclick = () => { const c = JSON.parse(JSON.stringify(u)); c.name = u.name + ' copy'; S.units.splice(cur + 1, 0, c); cur++; save(); renderAll(); };
+  $('uLeft').onclick = () => { if (cur > 0) { [S.units[cur - 1], S.units[cur]] = [S.units[cur], S.units[cur - 1]]; cur--; save(); renderAll(); } };
+  $('uRight').onclick = () => { if (cur < S.units.length - 1) { [S.units[cur + 1], S.units[cur]] = [S.units[cur], S.units[cur + 1]]; cur++; save(); renderAll(); } };
+}
+// Light update after typing in a box: redraw without rebuilding the
+// boxes, so clicking straight into the next box doesn't lose focus.
+function refresh(){
+  renderTabs(); drawRun(); cutList(); header();
+  const u = S.units[cur]; if (!u) return;
+  const g = geo(u);
+  const it = $('insideTxt'); if (it) it.textContent = `Inside: ${Math.round(g.innerW)} wide × ${Math.round(g.innerH)} high.`;
+  const w = $('widthWarn'); if (w) w.textContent = g.err;
+  document.querySelectorAll('[data-colw]').forEach(el => el.textContent = Math.round(g.cols[+el.dataset.colw].w));
+}
+function header(){
+  $('sTitle').textContent = [S.job, S.room].filter(Boolean).join(' – ') || 'Front view';
+  $('sSub').textContent = `${S.units.length} unit${S.units.length === 1 ? '' : 's'} · ${S.board}mm board · front view, doors off`;
+}
+function renderAll(){
+  $('jName').value = S.job; $('jRoom').value = S.room; $('jBoard').value = S.board; $('jSet').value = S.setback; $('jBack').value = String(S.back);
+  renderTabs(); renderEdit(); drawRun(); cutList(); header();
+}
+
+[['jName','job','text'],['jRoom','room','text'],['jBoard','board','n'],['jSet','setback','n'],['jBack','back','n']].forEach(([id, k, ty]) => {
+  $(id).onchange = e => { S[k] = ty === 'n' ? num(e.target.value) : e.target.value; save(); if (ty === 'n') renderAll(); else refresh(); };
+});
+$('bAdd').onclick = () => { S.units.push(newUnit($('addType').value)); cur = S.units.length - 1; save(); renderAll(); };
+$('bPrint').onclick = () => { const t = document.title; document.title = `Cabinet layout - ${S.job || 'job'}`; window.print(); document.title = t; };
+$('bSave').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 1)], {type:'application/json'})); a.download = `${S.job || 'cabinet-layout'}.json`; document.body.appendChild(a); a.click(); a.remove(); };
+$('bOpen').onclick = () => $('fOpen').click();
+$('fOpen').onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { const d = JSON.parse(t); if (!d.units) throw 0; S = d; cur = 0; save(); renderAll(); }).catch(() => alert("That file isn't a saved cabinet layout.")); e.target.value = ''; };
+$('bNew').onclick = () => { if (confirm('Start a new layout? Save a file first if you want to keep this one.')) { S = fresh(); S.units.push(newUnit('wardrobe')); cur = 0; save(); renderAll(); } };
+
+S = load() || fresh();
+if (!S.units.length) S.units.push(newUnit('wardrobe'));
+renderAll();
+</script>
+</body>
+</html>
