@@ -353,14 +353,9 @@ CABINET_FRONT_LOOKUP = {
     "WDC 60/72": lambda c: [
         {**opening_door(451, c["height_mm"]), "note": "45\u00b0 corner hinge (special hardware, not standard)"}
     ],  # diagonal corner wall unit — confirmed: standard 447mm-wide door, 45\u00b0 corner hinges
-    "W 80/72": lambda c: [
-        opening_door(300, c["height_mm"]),
-        opening_door(400, c["height_mm"]),
-    ],  # custom-narrowed to 700mm wide for this job (its own name says 800) —
-       # confirmed as a 300mm + 400mm door split, not an even 2-way split.
-       # This is specific to this job's resize decision, not a general rule
-       # for every W 80/72 — if a future job's W 80/72 is a different width,
-       # reconfirm the split rather than assuming 300/400 again.
+    # W 80/72's 300 + 400 split was a one-off for one job (resized to
+    # 700 wide) and gave wrong doors on others, so it now uses the
+    # general rule (over 600 wide = two equal doors).
 }
 
 
@@ -665,6 +660,73 @@ def classify_cabinet_group(cabinet: dict) -> str:
     return "Base"
 
 
+def front_counts(fronts):
+    doors = sum(f["qty"] for f in (fronts or []) if f["type"] == "door")
+    drawers = sum(f["qty"] for f in (fronts or []) if f["type"] == "drawer_front")
+    return doors, drawers
+
+
+def plural(n, word):
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
+def describe_cabinet(cab: dict, group: str, fronts) -> dict:
+    """
+    Our own order code and description, built only from what the unit
+    is and its drawn size. Winner keeps its standard code/description
+    when a unit is resized (e.g. "600 Wall 900 High" drawn 500 wide),
+    so neither is used on the order list. The description carries no
+    measurements at all — the sizes are in their own columns.
+    """
+    d = cab["description"].lower()
+    w, h, dp = cab["width_mm"], cab["height_mm"], cab["depth_mm"]
+    doors, drawers = front_counts(fronts)
+    extra = []
+    if group == "Base":
+        if "l' shaped" in d or "l shaped" in d or 'l" shaped' in d:
+            legs = sorted([w, dp], reverse=True)
+            return {"order_code": f"BLC{legs[0]}/{legs[1]}", "order_description": "L-shaped corner base, 2 doors"}
+        if is_corner_unit(cab):
+            prefix, name = "BBC", "Blind corner base"
+        elif "sink" in d:
+            prefix, name = "BS", "Sink base"
+        elif re.search(r"\bbin", d):
+            prefix, name = "BB", "Bin base"
+        elif "oven" in d or "built-under" in d:
+            prefix, name = "BO", "Built-under oven housing"
+        elif drawers:
+            prefix, name = "BD", "Drawer base"
+        else:
+            prefix, name = "B", "Base unit"
+        code = f"{prefix}{w}"
+    elif group == "Wall":
+        if "diag" in d:
+            prefix, name = "WDC", "Diagonal corner wall unit"
+        elif is_corner_unit(cab):
+            prefix, name = "WC", "Corner wall unit"
+        else:
+            prefix, name = "W", "Wall unit"
+        code = f"{prefix}{w}/{h}"
+    else:
+        housing = classify_appliance_housing(cab["description"])
+        if "fridge" in d or "freezer" in d:
+            prefix, name = "TF", "Fridge/freezer housing"
+        elif housing:
+            prefix = "TO"
+            name = {"single_oven": "Single oven housing", "double_oven": "Double oven housing",
+                    "oven_microwave": "Oven + microwave housing"}[housing]
+        else:
+            prefix, name = "T", "Tall unit"
+        code = f"{prefix}{w}/{h}"
+    if doors:
+        extra.append(plural(doors, "door"))
+    if drawers:
+        extra.append(plural(drawers, "drawer"))
+    if fronts is None:
+        extra.append("fronts to confirm")
+    return {"order_code": code, "order_description": ", ".join([name] + extra)}
+
+
 def correct_width_depth(cab: dict) -> dict:
     """
     The model's bounding box gives raw X/Y extents, which only line
@@ -739,22 +801,46 @@ def cabinet_dims_from_parts(verts, faces):
         xs = [verts[3 * i] for i in idx]
         ys = [verts[3 * i + 1] for i in idx]
         zs = [verts[3 * i + 2] for i in idx]
-        dx, dy, dz = max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)
-        parts.append((dx, dy, dz))
+        parts.append({"lo": (min(xs), min(ys), min(zs)), "hi": (max(xs), max(ys), max(zs)),
+                      "d": (max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))})
     if len(parts) < 2:
         return None
-    carcass = max(parts, key=lambda p: p[0] * p[1] * p[2])
-    fronts = [p for p in parts if p is not carcass and min(p[0], p[1]) <= 0.025
-              and max(p[0], p[1]) >= 0.1 and p[2] >= 0.05]
+    carcass = max(parts, key=lambda p: p["d"][0] * p["d"][1] * p["d"][2])
+    cx, cy, cz = carcass["d"]
+    overall_h = max(p["hi"][2] for p in parts) - min(p["lo"][2] for p in parts)
+    # Sanity: the carcass has to be a box, not a single board, and be
+    # most of the unit's height. If not, the parts can't be trusted.
+    if min(cx, cy) < 0.1 or cz < 0.1 or cz < 0.6 * overall_h:
+        return None
+
+    def sits_on_face(p, axis):
+        # a front sits on the outside face of the carcass on its thin axis,
+        # not inside it (which would be a shelf, drawer box or side board)
+        tol = 0.006
+        return p["lo"][axis] >= carcass["hi"][axis] - tol or p["hi"][axis] <= carcass["lo"][axis] + tol
+
+    fronts = []
+    for p in parts:
+        if p is carcass:
+            continue
+        px, py, pz = p["d"]
+        if pz < 0.05 or max(px, py) < 0.1 or min(px, py) > 0.025:
+            continue
+        axis = 0 if px < py else 1
+        if sits_on_face(p, axis):
+            fronts.append((p, axis))
     if not fronts:
         return None
-    front = max(fronts, key=lambda p: max(p[0], p[1]) * p[2])
-    dx, dy, dz = carcass
-    if front[0] < front[1]:      # front board is thin in X -> unit faces along X
-        width, depth = dy, dx
+    # the fronts must all agree on which way the unit faces
+    axes = {a for _, a in fronts}
+    if len(axes) != 1:
+        return None
+    axis = axes.pop()
+    if axis == 0:      # fronts thin in X -> unit faces along X
+        width, depth = cy, cx
     else:
-        width, depth = dx, dy
-    return {"width_mm": round(width * 1000), "depth_mm": round(depth * 1000), "height_mm": round(dz * 1000)}
+        width, depth = cx, cy
+    return {"width_mm": round(width * 1000), "depth_mm": round(depth * 1000), "height_mm": round(cz * 1000)}
 
 
 # Preference order for the bulk-pass geometry kernel: lightest memory
@@ -947,13 +1033,16 @@ def parse_ifc(path: str) -> dict:
     # silently treated as zero.
     doors = []
     not_catalogued = []
-    for cab in groups["Base"] + groups["Wall"] + groups["Tall"]:
+    for g in ("Base", "Wall", "Tall"):
+      for cab in groups[g]:
         confirmed = cab["code"] in CABINET_FRONT_LOOKUP
         fronts = lookup_fronts(cab)
+        cab.update(describe_cabinet(cab, g, fronts))
         if fronts is None:
-            not_catalogued.append(cab["code"])
+            not_catalogued.append(cab["order_code"])
         else:
             doors.append({
+                "order_code": cab["order_code"],
                 "cabinet_code": cab["code"],
                 "cabinet_description": cab["description"],
                 "fronts": fronts,
