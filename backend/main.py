@@ -950,7 +950,9 @@ def parse_ifc(path: str) -> dict:
                             "z0_mm": round(b["z0"] * 1000),
                         }
                         parts = None
-                        if not is_corner_unit(cab) and "panel" not in cab["description"].lower() \
+                        # L-shaped corners need their full footprint (both legs) from the box
+                        is_l_corner = re.search(r"l['\"]? shaped", cab["description"].lower())
+                        if not is_l_corner and "panel" not in cab["description"].lower() \
                                 and "sheet material" not in cab["description"].lower():
                             try:
                                 parts = cabinet_dims_from_parts(shape.geometry.verts, shape.geometry.faces)
